@@ -14,7 +14,7 @@ $creds = Get-credential
  
  }
 
-    $newEnv = Get-JiraTicketInfo -crNumber "CR-906"
+    $newEnv = Get-JiraTicketInfo -crNumber "CR-3787"
 
     if( [string]::IsNullOrEmpty($newEnv) ) {
  
@@ -37,3 +37,4 @@ $creds = Get-credential
 
 
 #NEED TO Create a CASCADING ORDER TO PREVENT Fuckups
+
