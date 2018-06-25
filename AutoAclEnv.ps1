@@ -1,4 +1,4 @@
-﻿Function New-AwsSecurityStack {
+﻿function New-AwsSecurityStack {
 <#
 .SYNOPSIS
 
@@ -32,18 +32,18 @@ CR Number from Jira in the format "4340"
 
 
 #>
-    [cmdletBinding()]
-    param(
-        
-        [Alias("existing acl Name")]
-        [Parameter(Mandatory=$true)]
-        [string]$crnumber='',
-        [Parameter(Mandatory=$true)]
-        [string]$ip='10.219.1.183'
+  [CmdletBinding()]
+  param(
 
-        )
+    [Alias("existing acl Name")]
+    [Parameter(Mandatory = $true)]
+    [string]$crnumber = '',
+    [Parameter(Mandatory = $true)]
+    [string]$ip = '10.219.1.183'
 
-begin {
+  )
+
+  process {
 
     #Set-JiraConfigServer -Server 'https://my.jira.server.com:8080'  first time jira setup
 
@@ -51,68 +51,68 @@ begin {
 
     Write-Output "Please enter your Jira credentials."
 
-    $creds = Get-credential
+    $creds = Get-Credential
 
     $jiraSesh = New-JiraSession -Credential $creds -ErrorAction Stop
 
-     if( [string]::IsNullOrEmpty($jiraSesh) ) {
- 
-         Write-Warning "Jira session has expired, or bad username and password."
- 
-         break
- 
-     }
+    if ([string]::IsNullOrEmpty($jiraSesh)) {
 
-   $newEnv = Get-JiraTicketInfo -crNumber "CR-$crnumber"
+      Write-Warning "Jira session has expired, or bad username and password."
 
-     if( [string]::IsNullOrEmpty($newEnv) ) {
- 
-         Write-Warning "Jira was unable to locate ticked based on $crNumber"
- 
-         break
- 
-     }
-        try{
-                
-                Write-Output "Please enter you F5 credentials."
-                Connect-F5 -ip $ip -ErrorAction Stop 
+      break
 
-        }
+    }
 
-        catch{
+    $newEnv = Get-JiraTicketInfo -crNumber "CR-$crnumber"
 
-               Write-Warning "F5 was unable to connect please check your username, password, and network connection."
-               $_.Exception.Message
-               break
+    if ([string]::IsNullOrEmpty($newEnv)) {
 
-            }
+      Write-Warning "Jira was unable to locate ticked based on $crNumber"
+
+      break
+
+    }
+    try {
+
+      Write-Output "Please enter you F5 credentials."
+      Connect-F5 -ip $ip -ErrorAction Stop
+
+    }
+
+    catch {
+
+      Write-Warning "F5 was unable to connect please check your username, password, and network connection."
+      $_.Exception.Message
+      break
+
+    }
 
 
-            try {
-            New-DefaultAcl -name $newEnv.aws_group -subnet $newEnv.subnet -ErrorAction Stop
-            }
-            catch {
-            Write-Error "Adding ACL failed."
-            $_.Exception.Message
-            break
-            }
+    try {
+      New-DefaultAcl -Name $newEnv.aws_group -subnet $newEnv.subnet -ErrorAction Stop
+    }
+    catch {
+      Write-Error "Adding ACL failed."
+      $_.Exception.Message
+      break
+    }
 
-                #change for prod
+    #change for prod
 
-            try {
-                Add-APMRole -name "aggregate_acl_act_full_resource_assign_ag" -acl $newEnv.aws_group -group $newEnv.aws_group -ErrorAction stop
-            }
+    try {
+      Add-APMRole -Name "aggregate_acl_act_full_resource_assign_ag" -acl $newEnv.aws_group -group $newEnv.aws_group -ErrorAction stop
+    }
 
-            catch{
-                Write-Warning "Mapping ACL to VPN role failed."
-                $_.Exception.Message
-                break
-                }
+    catch {
+      Write-Warning "Mapping ACL to VPN role failed."
+      $_.Exception.Message
+      break
+    }
 
-            Update-APMPolicy -name "CSN_VPN_Streamlined" -ErrorAction Stop
+    Update-APMPolicy -Name "CSN_VPN_Streamlined" -ErrorAction Stop
 
-            Sync-DeviceToGroup -GroupName "Sync_Group"
+    Sync-DeviceToGroup -GroupName "Sync_Group"
 
+  }
+  #NEED TO Create a CASCADING ORDER TO PREVENT Fuckups
 }
-#NEED TO Create a CASCADING ORDER TO PREVENT Fuckups
-
