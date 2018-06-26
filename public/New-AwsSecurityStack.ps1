@@ -44,7 +44,7 @@ CR Number from Jira in the format "4340"
 
     [Validateset('dev', 'prod')]
     [Parameter(Mandatory = $false)]
-    [string]$role = "dev"
+    [string]$role = 'dev'
 
   )
 
@@ -58,7 +58,7 @@ CR Number from Jira in the format "4340"
         $role = "aggregate_acl_act_full_resource_assign_ag"
     }
 
-    else { $role = acl_1_act_full_resource_assign_ag }
+    else { $role = "acl_1_act_full_resource_assign_ag" }
 
     Write-Output "Please enter your Jira credentials."
 
