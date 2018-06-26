@@ -55,10 +55,10 @@ CR Number from Jira in the format "4340"
     [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 
     if( $role -eq 'dev' ){ 
-        $role = "aggregate_acl_act_full_resource_assign_ag"
+        $vpnrole = "aggregate_acl_act_full_resource_assign_ag"
     }
 
-    else { $role = "acl_1_act_full_resource_assign_ag" }
+    else { $vpnrole = "acl_1_act_full_resource_assign_ag" }
 
     Write-Output "Please enter your Jira credentials."
 
@@ -112,7 +112,7 @@ CR Number from Jira in the format "4340"
 
     try {
       Write-Output "Mapping ACl to VPN access role......"
-      Add-APMRole -Name $role -acl $newEnv.aws_group -group $newEnv.aws_group -ErrorAction stop
+      Add-APMRole -Name $vpnrole -acl $newEnv.aws_group -group $newEnv.aws_group -ErrorAction stop
       Write-Output "Mapped ACL $newEnv.aws_group to group  $newEnv.subnet."
     }
 
