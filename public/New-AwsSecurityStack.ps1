@@ -43,7 +43,7 @@ CR Number from Jira in the format "4340"
     [string]$f5ip = '10.219.1.183',
 
     [Validateset('dev', 'prod')]
-    [Paramerter(Mandatory = $false)]
+    [Parameter(Mandatory = $false)]
     [string]$role = "dev"
 
   )
