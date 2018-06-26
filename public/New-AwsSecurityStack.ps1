@@ -38,8 +38,13 @@ CR Number from Jira in the format "4340"
     [Alias("existing acl Name")]
     [Parameter(Mandatory = $true)]
     [string]$crnumber = '',
+
     [Parameter(Mandatory = $true)]
-    [string]$ip = '10.219.1.183'
+    [string]$f5ip = '10.219.1.183',
+
+    [Validateset('dev', 'prod')]
+    [Paramerter(Mandatory = $false)]
+    [string]$role = "dev"
 
   )
 
@@ -48,6 +53,12 @@ CR Number from Jira in the format "4340"
     #Set-JiraConfigServer -Server 'https://my.jira.server.com:8080'  first time jira setup
 
     [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+
+    if( $role -eq 'dev' ){ 
+        $role = "aggregate_acl_act_full_resource_assign_ag"
+    }
+
+    else { $role = acl_1_act_full_resource_assign_ag }
 
     Write-Output "Please enter your Jira credentials."
 
@@ -75,7 +86,7 @@ CR Number from Jira in the format "4340"
     try {
 
       Write-Output "Please enter you F5 credentials."
-      Connect-F5 -ip $ip -ErrorAction Stop
+      Connect-F5 -ip $f5ip -ErrorAction Stop
 
     }
 
@@ -99,11 +110,9 @@ CR Number from Jira in the format "4340"
       break
     }
 
-    #change for prod
-
     try {
       Write-Output "Mapping ACl to VPN access role......"
-      Add-APMRole -Name "aggregate_acl_act_full_resource_assign_ag" -acl $newEnv.aws_group -group $newEnv.aws_group -ErrorAction stop
+      Add-APMRole -Name $role -acl $newEnv.aws_group -group $newEnv.aws_group -ErrorAction stop
       Write-Output "Mapped ACL $newEnv.aws_group to group  $newEnv.subnet."
     }
 
