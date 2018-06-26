@@ -102,18 +102,18 @@ CR Number from Jira in the format "4340"
     try {
       Write-Output "Adding new ACL......"
       New-DefaultAcl -Name $newEnv.aws_group -subnet $newEnv.subnet -ErrorAction Stop
-      Write-Output "Added $newEnv.aws_group with subnet $newEnv.subnet"
+      Write-Output "Added $($newEnv.aws_group) with subnet $($newEnv.subnet)"
     }
     catch {
-      Write-Error "Adding ACL failed."
+      Write-Warning "Adding ACL failed."
       $_.ErrorDetails.Message
       break
     }
 
     try {
       Write-Output "Mapping ACl to VPN access role......"
-      Add-APMRole -Name $vpnrole -acl $newEnv.aws_group -group $newEnv.aws_group -ErrorAction stop
-      Write-Output "Mapped ACL $newEnv.aws_group to group  $newEnv.subnet."
+      Add-APMRole -Name $vpnrole -acl $newEnv.aws_group -group $newEnv.aws_group -ErrorAction stop | Out-Null
+      Write-Output "Mapped ACL $($newEnv.aws_group) to group  $($newEnv.subnet)."
     }
 
     catch {
@@ -121,7 +121,7 @@ CR Number from Jira in the format "4340"
       $_.Exception.Message
       Write-Output "Rolling back changes......"
       Remove-Acl -name $newEnv.aws_group
-      Write-Output "ACL $newEnv.aws_group has been removed."
+      Write-Output "ACL $($newEnv.aws_group) has been removed."
       break
     }
 
