@@ -51,7 +51,7 @@ CR Number from Jira in the format "4340"
 
     Write-Output "Please enter your Jira credentials."
 
-    $creds = Get-Credential
+    $creds = Get-Credential -Message "Please enter credentials to access Jira"
 
     $jiraSesh = New-JiraSession -Credential $creds -ErrorAction Stop
 
@@ -89,30 +89,56 @@ CR Number from Jira in the format "4340"
 
 
     try {
+      Write-Output "Adding new ACL......"
       New-DefaultAcl -Name $newEnv.aws_group -subnet $newEnv.subnet -ErrorAction Stop
+      Write-Output "Added $newEnv.aws_group with subnet $newEnv.subnet"
     }
     catch {
       Write-Error "Adding ACL failed."
-      $_.Exception.Message
+      $_.ErrorDetails.Message
       break
     }
 
     #change for prod
 
     try {
+      Write-Output "Mapping ACl to VPN access role......"
       Add-APMRole -Name "aggregate_acl_act_full_resource_assign_ag" -acl $newEnv.aws_group -group $newEnv.aws_group -ErrorAction stop
+      Write-Output "Mapped ACL $newEnv.aws_group to group  $newEnv.subnet."
     }
 
     catch {
       Write-Warning "Mapping ACL to VPN role failed."
       $_.Exception.Message
+      Write-Output "Rolling back changes......"
+      Remove-Acl -name $newEnv.aws_group
+      Write-Output "ACL $newEnv.aws_group has been removed."
       break
     }
 
-    Update-APMPolicy -Name "CSN_VPN_Streamlined" -ErrorAction Stop
+    Write-Output "Apply APM Policy......"
 
-    Sync-DeviceToGroup -GroupName "Sync_Group"
+    try{
+      Update-APMPolicy -Name "CSN_VPN_Streamlined" -ErrorAction Stop
+      Write-Output "Policy Applied"
+    }
 
+    catch{
+      Write-Warning "Updating APM Policy failed."
+      $_.Exception.Message
+      break
+    }
+
+    try{
+      Write-Output "Syncing Device to Group......"
+      Sync-DeviceToGroup -GroupName "Sync_Group"
+      Write-Output "Synced"
+    }
+    catch{
+      Write-Warning "Syncing Device to Group failed."
+      $_.Exception.Message
+      break
+    }
   }
-  #NEED TO Create a CASCADING ORDER TO PREVENT Fuckups
+  
 }
