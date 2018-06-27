@@ -101,7 +101,7 @@ CR Number from Jira in the format "4340"
 
     try {
       Write-Output "Adding new ACL......"
-      New-DefaultAcl -Name $newEnv.aws_group -subnet $newEnv.subnet -ErrorAction Stop
+      New-DefaultAcl -Name $newEnv.aws_group -subnet $newEnv.subnet -ErrorAction Stop | Write-Verbose
       Write-Output "Added $($newEnv.aws_group) with subnet $($newEnv.subnet)"
     }
     catch {
@@ -112,7 +112,7 @@ CR Number from Jira in the format "4340"
 
     try {
       Write-Output "Mapping ACl to VPN access role......"
-      Add-APMRole -Name $vpnrole -acl $newEnv.aws_group -group $newEnv.aws_group -ErrorAction stop | Out-Null
+      Add-APMRole -Name $vpnrole -acl $newEnv.aws_group -group $newEnv.aws_group -ErrorAction stop | Write-Verbose
       Write-Output "Mapped ACL $($newEnv.aws_group) to group  $($newEnv.subnet)."
     }
 
@@ -128,7 +128,7 @@ CR Number from Jira in the format "4340"
     Write-Output "Apply APM Policy......"
 
     try{
-      Update-APMPolicy -Name "CSN_VPN_Streamlined" -ErrorAction Stop
+      Update-APMPolicy -Name "CSN_VPN_Streamlined" -ErrorAction Stop | Write-Verbose
       Write-Output "Policy Applied"
     }
 
@@ -140,7 +140,7 @@ CR Number from Jira in the format "4340"
 
     try{
       Write-Output "Syncing Device to Group......"
-      Sync-DeviceToGroup -GroupName "Sync_Group"
+      Sync-DeviceToGroup -GroupName "Sync_Group" | Write-Verbose
       Write-Output "Synced"
     }
     catch{
