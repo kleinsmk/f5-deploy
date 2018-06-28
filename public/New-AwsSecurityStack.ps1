@@ -74,6 +74,7 @@ CR Number from Jira in the format "4340"
 
     }
 
+
     $newEnv = Get-JiraTicketInfo -crNumber "CR-$crnumber"
 
     if ([string]::IsNullOrEmpty($newEnv)) {
@@ -83,20 +84,28 @@ CR Number from Jira in the format "4340"
       break
 
     }
-    try {
 
-      Write-Output "Please enter you F5 credentials."
-      Connect-F5 -ip $f5ip -ErrorAction Stop
+    #Check for Active F5 Sesssion and skip prompting if true
+    $exp = $F5Session.WebSession.Headers. 'Token-Expiration'
+    if ($exp -lt (date)) {
+
+         try {
+
+          Write-Output "Please enter you F5 credentials."
+          Connect-F5 -ip $f5ip -ErrorAction Stop
+
+         }
+
+        catch {
+
+          Write-Warning "F5 was unable to connect please check your username, password, and network connection."
+          $_.Exception.Message
+          break
+
+        }
 
     }
-
-    catch {
-
-      Write-Warning "F5 was unable to connect please check your username, password, and network connection."
-      $_.Exception.Message
-      break
-
-    }
+   
 
 
     try {
