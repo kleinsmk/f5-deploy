@@ -44,7 +44,7 @@ CR Number from Jira in the format "4340"
 
     [Validateset('dev', 'prod')]
     [Parameter(Mandatory = $false)]
-    [string]$role = 'dev'
+    [string]$role = 'prod'
 
   )
 
@@ -110,7 +110,8 @@ CR Number from Jira in the format "4340"
 
     try {
       Write-Output "Adding new ACL......"
-      New-DefaultAcl -Name $newEnv.aws_group -subnet $newEnv.subnet -ErrorAction Stop | Write-Verbose
+      $aclOrder = (Get-NextAclOrder) + 1
+      New-DefaultAcl -Name $newEnv.aws_group -subnet $newEnv.subnet -aclOrder $aclOrder -ErrorAction Stop | Write-Verbose
       Write-Output "Added $($newEnv.aws_group) with subnet $($newEnv.subnet)"
     }
     catch {
