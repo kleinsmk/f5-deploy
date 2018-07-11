@@ -158,6 +158,67 @@ CR Number from Jira in the format "4340"
       $_.Exception.Message
       break
     }
+  #============================================================================================================
+  #Add Same ACL build to AWS F5
+
+   try {
+
+          Write-Output "Please enter your F5 AWS credentials."
+          Connect-F5 -ip ec2f5.boozallencsn.com -ErrorAction Stop
+
+         }
+
+  catch {
+
+          Write-Warning "F5 was unable to connect please check your username, password, and network connection."
+          $_.Exception.Message
+          break
+
+        }
+
+  try {
+      Write-Output "Adding new ACL to AWS F5......"
+      New-DefaultAcl -Name $newEnv.aws_group -subnet $newEnv.subnet -aclOrder $aclOrder -ErrorAction Stop | Write-Verbose
+      Write-Output "Added $($newEnv.aws_group) with subnet $($newEnv.subnet)"
+    }
+    catch {
+      Write-Warning "Adding ACL failed."
+      $_.ErrorDetails.Message
+      break
+    }
+
+    try {
+      Write-Output "Mapping ACl to VPN access role on AWS F5......"
+      Add-APMRole -Name $vpnrole -acl $newEnv.aws_group -group $newEnv.aws_group -ErrorAction stop | Write-Verbose
+      Write-Output "Mapped ACL $($newEnv.aws_group) to group  $($newEnv.subnet)."
+    }
+
+    catch {
+      Write-Warning "Mapping ACL to VPN role failed."
+      $_.Exception.Message
+      Write-Output "Rolling back changes......"
+      Remove-Acl -name $newEnv.aws_group
+      Write-Output "ACL $($newEnv.aws_group) has been removed."
+      break
+    }
+
+    Write-Output "Apply APM Policy on AWS F5......"
+
+    try{
+      Update-APMPolicy -Name "CSN_VPN_Streamlined" -ErrorAction Stop | Write-Verbose
+      Write-Output "Policy Applied"
+    }
+
+    catch{
+      Write-Warning "Updating APM Policy failed."
+      $_.Exception.Message
+      break
+    }
   }
+
   
-}
+
+   
+  }#end function brace
+  
+
