@@ -52,12 +52,27 @@ function New-VCD {
     #Test if session valid
     if ($exp -lt (date)) {
 
-      throw "F5 Session is not active or has expired."
+      Write-Warning "F5 Session is not active or has expired." -ErrorAction Stop
+      break
 
     }
 
   }
   process {
+
+    try
+
+    {
+      New-Node -Name "$vsName" -Address "$nodeIP"
+      Write-Host "Successfully created New Node $vsname"
+    }
+
+    catch
+
+    {
+      Write-Warning $_.Exception.Message
+      break
+    }
 
     try #Add New Pool
 
@@ -72,6 +87,14 @@ function New-VCD {
     {
 
       Write-Error $_.Exception.Message
+
+      Write-Warning "Rolling back changes....."
+      Write-Warning "Removing Pool...."
+      Remove-Pool -PoolName ${vsName} -Confirm:$false
+      Write-Warning "Pool ${vsName} has been removed."
+      Write-Warning "Removing Node...."
+      Remove-Node -Name $vsName -Confirm:$false
+      Write-Warning "Node ${vsName} has been removed."
       break
 
     }
@@ -79,8 +102,8 @@ function New-VCD {
 
     try #Add Pool Member Try Catch
 
-    {
-      Add-PoolMember -PoolName "$vsName" -Address "$nodeIP" -PortNumber "$nodePort" -Status Enabled -ErrorAction Stop | Out-Null
+    { 
+      Add-PoolMember -PoolName "$vsName" -Name "$vsName" -PortNumber "$nodePort" -Status Enabled -ErrorAction Stop | Out-Null
       Write-Verbose "Successfully Added New Pool Member $nodeIP"
 
     }
@@ -94,6 +117,9 @@ function New-VCD {
       Write-Warning "Removing Pool...."
       Remove-Pool -PoolName ${vsName} -Confirm:$false
       Write-Warning "Pool ${vsName} has been removed."
+      Write-Warning "Removing Node...."
+      Remove-Node -Name $vsName -Confirm:$false
+      Write-Warning "Node ${vsName} has been removed."
       break
 
     }
@@ -115,6 +141,9 @@ function New-VCD {
       Write-Warning "Removing Pool...."
       Remove-Pool -PoolName ${vsName} -Confirm:$false
       Write-Warning "Pool ${vsName} has been removed."
+      Write-Warning "Removing Node...."
+      Remove-Node -Name $vsName -Confirm:$false
+      Write-Warning "Node ${vsName} has been removed."
       break
 
     }
@@ -136,6 +165,9 @@ function New-VCD {
       Write-Warning "Removing Pool...."
       Remove-Pool -PoolName ${vsName} -Confirm:$false | Out-Null
       Write-Warning "Pool ${vsName} has been removed."
+      Write-Warning "Removing Node...."
+      Remove-Node -Name $vsName -Confirm:$false
+      Write-Warning "Node ${vsName} has been removed."
       break
 
     }
@@ -158,6 +190,9 @@ function New-VCD {
       Write-Warning "Removing Pool...."
       Remove-Pool -PoolName ${vsName} -Confirm:$false | Out-Null
       Write-Warning "Pool ${vsName} has been removed."
+      Write-Warning "Removing Node...."
+      Remove-Node -Name $vsName -Confirm:$false
+      Write-Warning "Node ${vsName} has been removed."
       break
 
     }
@@ -186,6 +221,9 @@ function New-VCD {
       Write-Warning "Removing Pool...."
       Remove-Pool -PoolName ${vsName} -Confirm:$false
       Write-Warning "Pool ${vsName} has been removed."
+      Write-Warning "Removing Node...."
+      Remove-Node -Name $vsName -Confirm:$false
+      Write-Warning "Node ${vsName} has been removed."
       break
 
 
