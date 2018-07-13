@@ -110,7 +110,7 @@ CR Number from Jira in the format "4340"
 
     try {
       Write-Output "Adding new ACL......"
-      $aclOrder = (Get-NextAclOrder) + 1
+      $aclOrder = (Get-NextAclOrder)
       New-DefaultAcl -Name $newEnv.aws_group -subnet $newEnv.subnet -aclOrder $aclOrder -ErrorAction Stop | Write-Verbose
       Write-Output "Added $($newEnv.aws_group) with subnet $($newEnv.subnet)"
     }
