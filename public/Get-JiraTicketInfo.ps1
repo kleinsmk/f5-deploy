@@ -9,7 +9,9 @@
     [cmdletBinding()]
     param(
         
+        #CR number as CR-########
         [Alias("CR-Number")]
+        [ValidatePattern("[a-zA-Z]{2}-[0-9]*")]
         [Parameter(Mandatory=$true)]
         [string]$crNumber=''
 

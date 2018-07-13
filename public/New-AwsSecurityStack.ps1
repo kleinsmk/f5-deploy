@@ -36,11 +36,12 @@ CR Number from Jira in the format "4340"
   param(
 
     [Alias("existing acl Name")]
+    [ValidatePattern("[a-zA-Z]{2}-[0-9]*")]
     [Parameter(Mandatory = $true)]
     [string]$crnumber = '',
 
-    [Parameter(Mandatory = $true)]
-    [string]$f5ip = '10.219.1.183',
+    [Parameter(Mandatory = $false)]
+    [string]$f5ip = 'onpremf5.boozallencsn.com',
 
     [Validateset('dev', 'prod')]
     [Parameter(Mandatory = $false)]
@@ -75,7 +76,7 @@ CR Number from Jira in the format "4340"
     }
 
 
-    $newEnv = Get-JiraTicketInfo -crNumber "CR-$crnumber"
+    $newEnv = Get-JiraTicketInfo -crNumber "$crnumber"
 
     if ([string]::IsNullOrEmpty($newEnv)) {
 
@@ -110,7 +111,7 @@ CR Number from Jira in the format "4340"
 
     try {
       Write-Output "Adding new ACL......"
-      $aclOrder = (Get-NextAclOrder) + 1
+      $aclOrder = (Get-NextAclOrder)
       New-DefaultAcl -Name $newEnv.aws_group -subnet $newEnv.subnet -aclOrder $aclOrder -ErrorAction Stop | Write-Verbose
       Write-Output "Added $($newEnv.aws_group) with subnet $($newEnv.subnet)"
     }
