@@ -41,7 +41,10 @@ CR Number from Jira in the format "4340"
     [string]$crnumber = '',
 
     [Parameter(Mandatory = $false)]
-    [string]$f5ip = 'onpremf5.boozallencsn.com',
+    [string]$onrpemf5ip = 'onpremf5.boozallencsn.com',
+
+    [Parameter(Mandatory = $false)]
+    [string]$awsf5ip = 'ec2f5.boozallencsn.com',
 
     [Validateset('dev', 'prod')]
     [Parameter(Mandatory = $false)]
@@ -86,14 +89,11 @@ CR Number from Jira in the format "4340"
 
     }
 
-    #Check for Active F5 Sesssion and skip prompting if true
-    $exp = $F5Session.WebSession.Headers. 'Token-Expiration'
-    if ($exp -lt (date)) {
-
          try {
 
           Write-Output "Please enter you F5 credentials."
-          Connect-F5 -ip $f5ip -ErrorAction Stop
+          $creds = Get-Credential -Message "Please enter credentials to access the F5 load balancer"
+          $Global:F5Session = New-F5Session -LTMName $onrpemf5ip -LTMCredentials $creds -Default -PassThru -ErrorAction Stop
 
          }
 
@@ -104,10 +104,6 @@ CR Number from Jira in the format "4340"
           break
 
         }
-
-    }
-   
-
 
     try {
       Write-Output "Adding new ACL......"
@@ -161,11 +157,11 @@ CR Number from Jira in the format "4340"
     }
   #============================================================================================================
   #Add Same ACL build to AWS F5
-
+  
    try {
 
-          Write-Output "Please enter your F5 AWS credentials."
-          Connect-F5 -ip ec2f5.boozallencsn.com -ErrorAction Stop
+          Write-Output "Connecting to AWS F5 (ec2f5.boozallencsn.com)......"
+          $Global:F5Session = New-F5Session -LTMName $awsf5ip -LTMCredentials $creds -Default -PassThru -ErrorAction Stop
 
          }
 
@@ -216,7 +212,7 @@ CR Number from Jira in the format "4340"
       break
     }
   }
-
+ 
   
 
    
