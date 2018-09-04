@@ -19,8 +19,12 @@
     param(
         
         [Alias("acl Name")]
-        [Parameter(Mandatory=$true)]
-        $acls=''
+        [Parameter(Mandatory=$false)]
+        [string[]]$awsID='',
+      
+        [ValidateSet('Y','N')]
+        [Parameter(Mandatory=$false)]
+        [string]$AllProjects='N'
 
     )
 
@@ -32,12 +36,22 @@ if( $F5Session.WebSession.Headers.'Token-Expiration' -lt (date) ){
         }
 Write-Warning "This script runs SLOWLY. Use -Verbose if you would like to see real-time output."
 
-#filter down acls to speed up search
-$acls = $acls.items | Where-Object {$_.name -match '^AWS_[0-9]*$|^MAZ_[a-zA-Z0-9]*-[a-zA-Z0-9]*-[a-zA-Z0-9]*-[a-zA-Z0-9]*-[a-zA-Z0-9]*$'}
+if($AllProjects -eq 'Y'){
+    $acls = Get-AllAcl
+    #filter down acls to all aws acls speed up search
+    $acls = $acls.items | Where-Object {$_.name -match '^AWS_[0-9]*$|^MAZ_[a-zA-Z0-9]*-[a-zA-Z0-9]*-[a-zA-Z0-9]*-[a-zA-Z0-9]*-[a-zA-Z0-9]*$'}
+}
+
+else {
+    $acls = Get-SingleAcl -name $awsID
+}
+
+
 
 #build to combine lat
 $poolandnode = [pscustomobject]@()
 
+Write-Verbose "Getting All Pool memebers"
 $pools = Get-Pool
 #Get-PoolMember is massively slow
 $pools | foreach { $node = Get-PoolMember -InputObject $_; $poolandnode += [PScustomObject]@{ Name = $_.name; ip = $node.address; node = $node.name;} }
@@ -57,11 +71,12 @@ $results = [pscustomobject]@()
 
             foreach ($subnet in $subnets ) {
                 
+                Write-Verbose "Checking $ip against subnet $subnet"
                 $checked = IS-InSubnet -ipaddress $($ip.ip) -Cidr $subnet
                 if($checked) {
             
-                    $results += [pscustomobject]@{aclname = $acl.name; ip = $($ip.ip); subnet = $subnet;}
-                    Write-Verbose "True: for $($acl.name) $($ip.ip) $subnet"
+                    $results += [pscustomobject]@{aclname = $acl.name; ip = $ip.ip; subnet = $subnet;}
+                    Write-Verbose "True: for $($acl.name) $ip $subnet"
                 }           
             
             }
@@ -71,7 +86,7 @@ $results = [pscustomobject]@()
 $combined = [PSCustomObject]@()
 
 #sort Array
-foreach ($item in $output) {
+foreach ($item in $results) {
 
   foreach ($line in $poolandnode) {
     if( $item.ip -eq $line.ip) {
