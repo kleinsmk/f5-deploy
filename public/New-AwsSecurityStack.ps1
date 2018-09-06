@@ -106,7 +106,7 @@ CR Number from Jira in the format "4340"
         }
 
     try {
-      Write-Output "Adding new ACL......"
+      Write-Output "[Adding new ACL]......"
       $aclOrder = (Get-NextAclOrder)
       New-DefaultAcl -Name $newEnv.aws_group -subnet $newEnv.subnet -aclOrder $aclOrder -ErrorAction Stop | Write-Verbose
       Write-Output "Added $($newEnv.aws_group) with subnet $($newEnv.subnet)"
@@ -118,7 +118,7 @@ CR Number from Jira in the format "4340"
     }
 
     try {
-      Write-Output "Mapping ACl to VPN access role......"
+      Write-Output "[Mapping ACl to VPN access role]......"
       Add-APMRole -Name $vpnrole -acl $newEnv.aws_group -group $newEnv.aws_group -ErrorAction stop | Write-Verbose
       Write-Output "Mapped ACL $($newEnv.aws_group) to group  $($newEnv.subnet)."
     }
@@ -132,7 +132,7 @@ CR Number from Jira in the format "4340"
       break
     }
 
-    Write-Output "Apply APM Policy......"
+    Write-Output "[Apply APM Policy]......"
 
     try{
       Update-APMPolicy -Name "CSN_VPN_Streamlined" -ErrorAction Stop | Write-Verbose
@@ -146,7 +146,7 @@ CR Number from Jira in the format "4340"
     }
 
     try{
-      Write-Output "Syncing Device to Group......"
+      Write-Output "[Syncing Device to Group]......"
       Sync-DeviceToGroup -GroupName "Sync_Group" | Write-Verbose
       Write-Output "Synced"
     }
@@ -160,7 +160,7 @@ CR Number from Jira in the format "4340"
   
    try {
 
-          Write-Output "Connecting to AWS F5 (ec2f5.boozallencsn.com)......"
+          Write-Output "[Connecting to AWS F5 (ec2f5.boozallencsn.com)]......"
           $Global:F5Session = New-F5Session -LTMName $awsf5ip -LTMCredentials $creds -Default -PassThru -ErrorAction Stop
 
          }
@@ -174,7 +174,7 @@ CR Number from Jira in the format "4340"
         }
 
   try {
-      Write-Output "Adding new ACL to AWS F5......"
+      Write-Output "[Adding new ACL to AWS F5]......"
       New-DefaultAcl -Name $newEnv.aws_group -subnet $newEnv.subnet -aclOrder $aclOrder -ErrorAction Stop | Write-Verbose
       Write-Output "Added $($newEnv.aws_group) with subnet $($newEnv.subnet)"
     }
@@ -185,7 +185,7 @@ CR Number from Jira in the format "4340"
     }
 
     try {
-      Write-Output "Mapping ACl to VPN access role on AWS F5......"
+      Write-Output "[Mapping ACl to VPN access role on AWS F5]......"
       Add-APMRole -Name $vpnrole -acl $newEnv.aws_group -group $newEnv.aws_group -ErrorAction stop | Write-Verbose
       Write-Output "Mapped ACL $($newEnv.aws_group) to group  $($newEnv.subnet)."
     }
@@ -199,7 +199,7 @@ CR Number from Jira in the format "4340"
       break
     }
 
-    Write-Output "Apply APM Policy on AWS F5......"
+    Write-Output "[Apply APM Policy on AWS F5]......"
 
     try{
       Update-APMPolicy -Name "CSN_VPN_Streamlined" -ErrorAction Stop | Write-Verbose
@@ -211,6 +211,36 @@ CR Number from Jira in the format "4340"
       $_.Exception.Message
       break
     }
+
+    
+
+    try{
+      
+      #Close out Comments 
+      Add-JiraIssueComment -Comment "Core Services VPN Config COmplete" -Issue $crnumber -VisibleRole 'All Users'
+      Write-Output "[Added Closing Comment]......"
+    }
+
+    catch{
+      Write-Warning "Updating Jira comments failed."
+      $_.Exception.Message
+      break
+    }
+
+    try{
+         #Close Out Ticket
+      Get-JiraIssue -Key $crnumber | Invoke-JiraIssueTransition -Transition 81 
+      Write-Output "[Ticket Closed]......"
+      Write-Output "[New Build Complete!]"
+    }
+
+    catch{
+      Write-Warning "Updating Jira comments failed."
+      $_.Exception.Message
+      break
+    }
+
+
   }
  
   
