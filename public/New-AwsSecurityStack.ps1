@@ -217,7 +217,7 @@ CR Number from Jira in the format "4340"
     try{
       
       #Close out Comments 
-      Add-JiraIssueComment -Comment "Core Services VPN Config COmplete" -Issue $crnumber -VisibleRole 'All Users'
+      Add-JiraIssueComment -Comment "Core Services VPN Config Complete" -Issue $crnumber -VisibleRole 'All Users' | Out-Null
       Write-Output "[Added Closing Comment]......"
     }
 
@@ -229,7 +229,7 @@ CR Number from Jira in the format "4340"
 
     try{
          #Close Out Ticket
-      Get-JiraIssue -Key $crnumber | Invoke-JiraIssueTransition -Transition 81 
+      Get-JiraIssue -Key $crnumber | Invoke-JiraIssueTransition -Transition 81 | Out-Null
       Write-Output "[Ticket Closed]......"
       Write-Output "[New Build Complete!]"
     }
