@@ -90,7 +90,7 @@ CR Number from Jira in the format "4340"
 
     try {
       Write-Output "Removing existing Role mapping......"
-      Remove-APMRole -acl $awsId -group $awsID | Out-Null
+      Remove-APMRole -acl $awsId -group $awsID -name $vpnrole | Out-Null
       Write-Output "Removed $awsId mapping from group $awsId"
     }
     catch {
@@ -154,7 +154,7 @@ CR Number from Jira in the format "4340"
 
     try {  
       Write-Output "Removing existing Role mapping......"
-      Remove-APMRole -acl $awsId -group $awsID | Out-Null
+      Remove-APMRole -acl $awsId -group $awsID -name $vpnrole | Out-Null
       Write-Output "Removed $awsId mapping from group $awsId"
     }
     catch {
