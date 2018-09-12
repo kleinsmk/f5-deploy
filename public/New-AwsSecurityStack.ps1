@@ -211,6 +211,36 @@ CR Number from Jira in the format "4340"
       $_.Exception.Message
       break
     }
+
+    
+
+    try{
+      
+      #Close out Comments 
+      Add-JiraIssueComment -Comment "Core Services VPN Config Complete" -Issue $crnumber -VisibleRole 'All Users' | Out-Null
+      Write-Output "[Added Closing Comment]......"
+    }
+
+    catch{
+      Write-Warning "Updating Jira comments failed."
+      $_.Exception.Message
+      break
+    }
+
+    try{
+         #Close Out Ticket
+      Get-JiraIssue -Key $crnumber | Invoke-JiraIssueTransition -Transition 81 | Out-Null
+      Write-Output "Ticket Closed......"
+      Write-Output "New Build Complete!"
+    }
+
+    catch{
+      Write-Warning "Updating Jira comments failed."
+      $_.Exception.Message
+      break
+    }
+
+
   }
  
   
