@@ -1,8 +1,8 @@
 ﻿Deploy f5-deploy {
 
     By FileSystem {
-        FromSource '.\'
-        To 'C:\Users\551479\Desktop\testdeploy'
+        FromSource '.\f5-deploy'
+        To 'C:\Program Files\WindowsPowerShell\Modules\f5-deploy'
         Tagged Prod
     }
 }
