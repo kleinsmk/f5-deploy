@@ -1,12 +1,12 @@
-﻿Function Get-Csr {
+﻿Function Remove-SSLClient {
 <#
 .SYNOPSIS
 
 .PARAMETER name
 
-.PARAMETER 
+.PARAMETER dstSubnet
 
-.PARAMETER 
+.PARAMETER aclOrder
 
 
 .EXAMPLE
@@ -23,11 +23,12 @@
     [cmdletBinding()]
     param(
         
-        [Alias("Common Name")]
+        
         [Parameter(Mandatory=$true)]
-        [string[]]$csrName=''
+        [string[]]$profileName=''
 
     )
+
     begin {
         #Test that the F5 session is in a valid format
         Test-F5Session($F5Session)
@@ -43,14 +44,18 @@
     process {
 
 
-        foreach ($name in $csrName) {
+        foreach ($profile in $profileName) {
 
 
 $JSONBody = @"
 {
-"command":"run",
-"utilCmdArgs":"-c 'tmsh list sys crypto csr $name'"
-	
+    "kind":  "tm:ltm:profile:client-ssl:client-sslstate",
+    "name":  "$profileName",
+    "cert":  "$cert",
+    "chain":  "$cert",
+    "key":  "$key"
+
+                    
 }
     
 "@
@@ -59,10 +64,9 @@ $JSONBody = @"
 
 
 
-            $uri = $F5Session.BaseURL.Replace('/ltm/','/util/bash') 
-            $response = Invoke-RestMethodOverride -Method Post -Uri $URI -Body $JSONBody -ContentType 'application/json' -WebSession $F5Session.WebSession
-            #trim off tmsh from end In of command result
-            $response.commandResult -replace "sys crypto csr(?s)(.*$)"
+            $uri = $F5Session.BaseURL.Replace('/ltm/',"/ltm/profile/client-ssl/~Common~$profileName") 
+            $response = Invoke-RestMethodOverride -Method Delete -Uri $URI -WebSession $F5Session.WebSession
+            $response
         }
         
 }
