@@ -1,24 +1,19 @@
 ﻿Function Upload-Cert {
 <#
 .SYNOPSIS
-
-.PARAMETER name
-
-.PARAMETER dstSubnet
-
-.PARAMETER aclOrder
-
+ Uploads a cert file to the F5 Load Balancer and installs certificate too.  F5 appends .crt to filename.
+ 
+.PARAMETER filepath
+ Location of the cert file locally in full path format like: C:\certificates\test.cert
 
 .EXAMPLE
-
-.EXAMPLE
-
-
-	
-.EXAMPLE
-   .NOTES
-   
-    Requires F5-LTM modules from github
+ Upload-Cert -filepath "C:\certificates\test.cert"
+ 
+.OUTPUTS
+ 
+.NOTES
+ Requires F5-ltm module from github
+ 
 #>
     [cmdletBinding()]
     param(

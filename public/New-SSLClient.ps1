@@ -1,24 +1,24 @@
 ﻿Function New-SSLClient {
 <#
 .SYNOPSIS
+ Creates a new ssl client profile.
+.DESCRIPTION
+ 
+.PARAMETER profileName
+ Name you would like the profile to be called.
 
-.PARAMETER name
+.PARAMETER cert
+ Name of existing cert on F5.  Please make sure to add .crt to end of the name as F5 does this without telling you when you upload.
 
-.PARAMETER dstSubnet
-
-.PARAMETER aclOrder
-
+.PARAMETER key
+ Name of existing key on F5.  File extension is .key .
 
 .EXAMPLE
-
-.EXAMPLE
-
-
-	
-.EXAMPLE
-   .NOTES
-   
-    Requires F5-LTM modules from github
+ New-SSLClient -profileName newsite.com_sslclient -cert newsite.com.crt -key newsite.com.key
+ 
+.NOTES
+ Requires f5-ltm from github
+ 
 #>
     [cmdletBinding()]
     param(
