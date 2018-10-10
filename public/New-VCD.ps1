@@ -174,6 +174,7 @@ function New-CSN-VCD {
     {
       Write-Warning $_.Exception.Message
       Write-Error "Failed to create node."
+      Rollback-VCD -rollBack_Element @('serverssl','clientssl')
       break
     }
 
@@ -191,7 +192,7 @@ function New-CSN-VCD {
 
       Write-Error $_.Exception.Message
       Write-Error "Failed to create pool."
-      Rollback-VCD -rollBack_Element @('node')
+      Rollback-VCD -rollBack_Element @('node','serverssl','clientssl')
       break
 
     }
@@ -209,7 +210,7 @@ function New-CSN-VCD {
     {
       Write-Error $_.Exception.Message
       Write-Error "Failed to add pool member to pool."
-      Rollback-VCD -rollBack_Element @('pool','node')
+      Rollback-VCD -rollBack_Element @('pool','node','serverssl','clientssl')
       break
 
     }
@@ -227,7 +228,7 @@ function New-CSN-VCD {
     {
       Write-Error $_.Exception.Message
       Write-Error "Failed to add pool monitor."
-      Rollback-VCD -rollBack_Element @('pool','node')
+      Rollback-VCD -rollBack_Element @('pool','node','serverssl','clientssl')
       break
 
     }
@@ -235,16 +236,48 @@ function New-CSN-VCD {
     #Add New Virtual Server
     try
     { 
-      New-VirtualServer -Name "$vsName" -DestinationPort "$vsPort" -DestinationIP "$vsIP" -SourceAddressTranslationType automap `
-         -ipProtocol tcp -DefaultPool $vsName -ProfileNames "http-X-Forwarder" -Description $desc -ErrorAction Stop | Out-Null
-      Write-Verbose "Successfully Added New Virtual Server $vsName ${vsIP}:${vsPort} " }
+            #when both profile arguments have been passed in
+            If( !([string]::IsNullOrEmpty($sslClientProfile)) -and !([string]::IsNullOrEmpty($SSLServerProfile)) ){
+                #Build with both profiles
+
+                New-VirtualServer -Name "$vsName" -DestinationPort "$vsPort" -DestinationIP "$vsIP" -SourceAddressTranslationType automap `
+                -ipProtocol tcp -DefaultPool $vsName -ProfileNames @("http-X-Forwarder","$sslClientProfile","$SSLServerProfile") -Description $desc -ErrorAction Stop | Out-Null
+                Write-Verbose "Successfully Added New Virtual Server $vsName ${vsIP}:${vsPort} " 
+
+            }
+            Elseif( [string]::IsNullOrEmpty($sslClientProfile) ){
+                #Build only client
+
+                 New-VirtualServer -Name "$vsName" -DestinationPort "$vsPort" -DestinationIP "$vsIP" -SourceAddressTranslationType automap `
+                -ipProtocol tcp -DefaultPool $vsName -ProfileNames @("http-X-Forwarder","$sslClientProfile") -Description $desc -ErrorAction Stop | Out-Null
+                Write-Verbose "Successfully Added New Virtual Server $vsName ${vsIP}:${vsPort} " 
+            }
+            Elseif( [string]::IsNullOrEmpty($SSLServerProfile) ){
+                #Build only server
+
+                 New-VirtualServer -Name "$vsName" -DestinationPort "$vsPort" -DestinationIP "$vsIP" -SourceAddressTranslationType automap `
+                -ipProtocol tcp -DefaultPool $vsName -ProfileNames @("http-X-Forwarder","$SSLServerProfile") -Description $desc -ErrorAction Stop | Out-Null
+                Write-Verbose "Successfully Added New Virtual Server $vsName ${vsIP}:${vsPort} " 
+
+            }
+            #build without profiles
+            Else{
+
+                New-VirtualServer -Name "$vsName" -DestinationPort "$vsPort" -DestinationIP "$vsIP" -SourceAddressTranslationType automap `
+                -ipProtocol tcp -DefaultPool $vsName -ProfileNames "http-X-Forwarder" -Description $desc -ErrorAction Stop | Out-Null
+                Write-Verbose "Successfully Added New Virtual Server $vsName ${vsIP}:${vsPort} " 
+            
+            }
+    }#end New VS Try       
+
+      
 
     #Add New Virtual Server
     catch
     {
       Write-Error $_.Exception.Message
       Write-Error "Failed to create virtual server."
-      Rollback-VCD -rollBack_Element @('pool','node')
+      Rollback-VCD -rollBack_Element @('pool','node','serverssl','clientssl')
       break
 
     }
@@ -263,7 +296,7 @@ function New-CSN-VCD {
 
       Write-Error $_.Exception.Message
       Write-Error "Failed to create iRule."
-      Rollback-VCD -rollBack_Element @('virtual','pool','node')
+      Rollback-VCD -rollBack_Element @('virtual','pool','node','serverssl','clientssl')
       break
 
     }
@@ -279,7 +312,7 @@ function New-CSN-VCD {
     {
       
       Write-Error $_.Exception.Message
-      Rollback-VCD -rollBack_Element @('irule','virtual','pool','node')
+      Rollback-VCD -rollBack_Element @('irule','virtual','pool','node','serverssl','clientssl')
       break
     }
 

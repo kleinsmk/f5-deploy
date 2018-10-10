@@ -49,19 +49,21 @@
             }
 
             "serverssl"{
+              #only remove newly created profiles in failure  
               If( $serverProfileCreated -eq $true){
                   Write-Warning "Removing Server SSL profile......"
-                  Remove-SSLClient -profileName $sslClientProfile
-                  Write-Output "Removed Client SSL profile $sslClientProfile."
+                  Remove-SSLServer -profileName $SSLServerProfile
+                  Write-Output "Removed Server SSL profile $sslClientProfile."
               }
 
             }
 
+            #only remove newly created profiles in failure  
             "clientssl"{
               If( $clientProfileCreated -eq $true){
                   Write-Warning "Removing Client SSL profile......"
-                  Remove-SSLClient -profileName $SSLServerProfile
-                  Write-Output "Removed Server SSL profile $SSLServerProfile."
+                  Remove-SSLClient -profileName $SSLClientProfile
+                  Write-Output "Removed Client SSL profile $SSLServerProfile."
               }
 
             }
