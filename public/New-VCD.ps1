@@ -97,21 +97,45 @@ function New-CSN-VCD {
     #New ASM
     try
     {
+           
          #skip if parameter was left blank
-         if(!([string]::IsNullOrEmpty($asmPolicyName))){   
-             #Only build new policy if there is not an existing one on F5
-             $asmPolicy = Get-ASMPolicies -name $asmPolicyName   
-             if([string]::IsNullOrEmpty($asmPolicy)){
-                New-ASMPolicy -policyname $dns
+         if(!([string]::IsNullOrEmpty($asmPolicyName))){ 
+           
+             #check for existing policy with default dns name
+             $asmPolicy = Get-ASMPolicies -name $asmPolicyName 
+               
+             if(!([string]::IsNullOrEmpty($asmPolicy))){
+                Write-Output "Using existing ASM Policy: $asmPolicyName"
              }
+             else{
+                Write-Output "Policy name $asmPolicyName was not found. Skipping Policy Creation."
+            }
+                      
          }
+
+         #if policy wasn't specified create a new one using default name
+         else{
+                #check for existing policy with default dns name
+                $asmPolicy = Get-ASMPolicies -name $dns
+                 
+                #if something came back  
+                if(!([string]::IsNullOrEmpty($asmPolicy))){
+                  Write-Output "Using existing ASM Policy: $dns"  
+                }
+
+                else{
+                  Write-Output "Creating New ASM policy....."
+                  New-ASMPolicy -policyname $dns -Verbose | Out-Null
+                  Write-Output "New ASM Policy $dns has been created."
+                }
+            }
     }
 
     #New ASM
     catch
     {
-         Write-Error $_.Exception.Message
-         Write-Error "Failed to create ASM Policy."
+         Write-Warning $_.Exception.Message
+         Write-Warning "Failed to create ASM Policy."
          break
     }
 
@@ -121,21 +145,29 @@ function New-CSN-VCD {
         if($buildtype -eq "HTTPS"){
 
             #Powershell makes this soo eloquent! Check if Both profiles arguments are NOT empty or Null.  This way we don't run profile calls if it's not required
-            If( !([string]::IsNullOrEmpty($sslClientProfile)) -and !([string]::IsNullOrEmpty($SSLServerProfile)) ){
+            If( (!([string]::IsNullOrEmpty($sslClientProfile))) -and (!([string]::IsNullOrEmpty($SSLServerProfile))) ){
                 #Build both
-                New-SSLClient -profileName $sslClientProfile -cert $certname -key $keyname
+                Write-Output "Creating new Client profile....."
+                New-SSLClient -profileName $sslClientProfile -cert $certname -key $keyname | Out-Null
+                Write-Output "Client Profile created."
                 $clientProfileCreated = $true
-                New-SSLServer -profileName $SSLServerProfile -cert $certname -key $keyname
+                Write-Output "Creating new Server profile....."
+                New-SSLServer -profileName $SSLServerProfile -cert $certname -key $keyname | Out-Null
+                Write-Output "Server Profile created."
                 $serverProfileCreated = $true
             }
-            Elseif( [string]::IsNullOrEmpty($sslClientProfile) ){
+            Elseif( !([string]::IsNullOrEmpty($sslClientProfile)) ){
                 #Build only client
-                New-SSLClient -profileName $sslClientProfile -cert $certname -key $keyname
+                Write-Output "Creating new Client profile....."
+                New-SSLClient -profileName $sslClientProfile -cert $certname -key $keyname | Out-Null
+                Write-Output "Client Profile created."
                 $clientProfileCreated = $true
             }
-            Elseif( [string]::IsNullOrEmpty($SSLServerProfile) ){
+            Elseif( !([string]::IsNullOrEmpty($SSLServerProfile)) ){
                 #Build only server
-                New-SSLServer -profileName $SSLServerProfile -cert $certname -key $keyname
+                Write-Output "Creating new Server profile....."
+                New-SSLServer -profileName $SSLServerProfile -cert $certname -key $keyname | Out-Null
+                Write-Output "Server Profile created."
                 $serverProfileCreated = $true
             } 
 
@@ -145,11 +177,11 @@ function New-CSN-VCD {
     #New SSL Profiles
     catch{
 
-             Write-Error $_.Exception.Message         
-             Write-Error "Failed to create SSL profile."
+             Write-Warning $_         
+             Write-Warning "Failed to create SSL profile.  Please ensure Cert and Key are present and files names match exactly."
              Rollback-VCD -rollBack_Element @('serverssl','clientssl')
              break
-         }
+         
 
     }  
 
@@ -159,11 +191,13 @@ function New-CSN-VCD {
         #Check for existing node
         $node = Get-Node -Address $nodeIP            
         if([string]::IsNullOrEmpty($node)){
-          New-Node -Name "$nodeName" -Address "$nodeIP" -Description $desc
-          Write-Host "Successfully created New Node $vsname"
+          Write-Host "Creating new node......"
+          New-Node -Name "$nodeName" -Address "$nodeIP" -Description $desc | Out-Null
+          Write-Host "Successfully created New Node $nodeName with IP $nodeIP"
         }
 
         else{
+             
              $nodeName = $node.name 
              Write-Host "Using Existing Node $nodeName"
         }
@@ -173,7 +207,7 @@ function New-CSN-VCD {
     catch 
     {
       Write-Warning $_.Exception.Message
-      Write-Error "Failed to create node."
+      Write-Warning "Failed to create node."
       Rollback-VCD -rollBack_Element @('serverssl','clientssl')
       break
     }
@@ -181,8 +215,9 @@ function New-CSN-VCD {
     #Add New Pool
     try 
     {
-      New-Pool -Name "$vsName" -LoadBalancingMode round-robin -Description $desc -ErrorAction Stop
-      Write-Verbose "Successfully Created New Pool $vsName"
+      Write-Output "Creating New Pool....."
+      New-Pool -Name "$vsName" -LoadBalancingMode round-robin -Description $desc -ErrorAction Stop | Out-Null
+      Write-Output "Successfully Created New Pool $vsName"
 
     }
 
@@ -190,8 +225,8 @@ function New-CSN-VCD {
     catch 
     {
 
-      Write-Error $_.Exception.Message
-      Write-Error "Failed to create pool."
+      Write-Warning $_.Exception.Message
+      Write-Warning "Failed to create pool."
       Rollback-VCD -rollBack_Element @('node','serverssl','clientssl')
       break
 
@@ -200,16 +235,17 @@ function New-CSN-VCD {
     #Add Pool Member
     try 
     { 
+      Write-Output "Adding pool member $nodeName to pool $vsName....."
       Add-PoolMember -PoolName "$vsName" -Name "$nodeName" -PortNumber "$nodePort" -Status Enabled -Description $desc -ErrorAction Stop | Out-Null
-      Write-Verbose "Successfully Added New Pool Member $nodeIP"
+      Write-Output "Successfully Added New Pool Member $nodeIP"
 
     }
 
     #Add Pool Member
     catch
     {
-      Write-Error $_.Exception.Message
-      Write-Error "Failed to add pool member to pool."
+      Write-Warning $_.Exception.Message
+      Write-Warning "Failed to add pool member to pool."
       Rollback-VCD -rollBack_Element @('pool','node','serverssl','clientssl')
       break
 
@@ -218,16 +254,17 @@ function New-CSN-VCD {
     #Add pool monitor
     try     
     { 
+      Write-Output "Adding pool TCP health monitor....." 
       Add-PoolMonitor -PoolName "$vsName" -Name tcp -ErrorAction Stop | Out-Null
-      Write-Verbose "Successfully Added New Pool Monitor" 
+      Write-Output "Successfully Added pool TCP health monitor." 
       
     }
 
     #Add pool monitor
     catch
     {
-      Write-Error $_.Exception.Message
-      Write-Error "Failed to add pool monitor."
+      Write-Warning $_.Exception.Message
+      Write-Warning "Failed to add pool monitor."
       Rollback-VCD -rollBack_Element @('pool','node','serverssl','clientssl')
       break
 
@@ -236,47 +273,46 @@ function New-CSN-VCD {
     #Add New Virtual Server
     try
     { 
+            
             #when both profile arguments have been passed in
             If( !([string]::IsNullOrEmpty($sslClientProfile)) -and !([string]::IsNullOrEmpty($SSLServerProfile)) ){
                 #Build with both profiles
-
+                Write-Output "Adding new Virtual Server with client profile $sslClientProfile and server profile $SSLServerProfile....."
                 New-VirtualServer -Name "$vsName" -DestinationPort "$vsPort" -DestinationIP "$vsIP" -SourceAddressTranslationType automap `
                 -ipProtocol tcp -DefaultPool $vsName -ProfileNames @("http-X-Forwarder","$sslClientProfile","$SSLServerProfile") -Description $desc -ErrorAction Stop | Out-Null
-                Write-Verbose "Successfully Added New Virtual Server $vsName ${vsIP}:${vsPort} " 
+                Write-Output "Successfully Added New Virtual Server $vsName ${vsIP}:${vsPort} " 
 
             }
-            Elseif( [string]::IsNullOrEmpty($sslClientProfile) ){
+            Elseif( !([string]::IsNullOrEmpty($sslClientProfile)) ){
                 #Build only client
-
+                 Write-Output "Adding new Virtual Server with client profile $sslClientProfile....."
                  New-VirtualServer -Name "$vsName" -DestinationPort "$vsPort" -DestinationIP "$vsIP" -SourceAddressTranslationType automap `
                 -ipProtocol tcp -DefaultPool $vsName -ProfileNames @("http-X-Forwarder","$sslClientProfile") -Description $desc -ErrorAction Stop | Out-Null
-                Write-Verbose "Successfully Added New Virtual Server $vsName ${vsIP}:${vsPort} " 
+                Write-Output "Successfully Added New Virtual Server $vsName ${vsIP}:${vsPort} " 
             }
-            Elseif( [string]::IsNullOrEmpty($SSLServerProfile) ){
+            Elseif( !([string]::IsNullOrEmpty($SSLServerProfile)) ){
                 #Build only server
-
+                Write-Output "Adding new Virtual Server with server profile $SSLServerProfile....."
                  New-VirtualServer -Name "$vsName" -DestinationPort "$vsPort" -DestinationIP "$vsIP" -SourceAddressTranslationType automap `
                 -ipProtocol tcp -DefaultPool $vsName -ProfileNames @("http-X-Forwarder","$SSLServerProfile") -Description $desc -ErrorAction Stop | Out-Null
-                Write-Verbose "Successfully Added New Virtual Server $vsName ${vsIP}:${vsPort} " 
+                Write-Output "Successfully Added New Virtual Server $vsName ${vsIP}:${vsPort} " 
 
             }
             #build without profiles
             Else{
-
+                Write-Output "Adding new Virtual Server without SSL profiles....."
                 New-VirtualServer -Name "$vsName" -DestinationPort "$vsPort" -DestinationIP "$vsIP" -SourceAddressTranslationType automap `
                 -ipProtocol tcp -DefaultPool $vsName -ProfileNames "http-X-Forwarder" -Description $desc -ErrorAction Stop | Out-Null
-                Write-Verbose "Successfully Added New Virtual Server $vsName ${vsIP}:${vsPort} " 
+                Write-Output "Successfully Added New Virtual Server $vsName ${vsIP}:${vsPort} " 
             
             }
     }#end New VS Try       
 
-      
-
     #Add New Virtual Server
     catch
     {
-      Write-Error $_.Exception.Message
-      Write-Error "Failed to create virtual server."
+      Write-Warning $_.Exception.Message
+      Write-Warning "Failed to create virtual server."
       Rollback-VCD -rollBack_Element @('pool','node','serverssl','clientssl')
       break
 
@@ -287,15 +323,15 @@ function New-CSN-VCD {
     { 
       $irule = "when HTTP_REQUEST {switch -glob [HTTP::host] {`"$dns`" { virtual $vsName }}}"
       Set-iRule -Name "$vsName" -iRuleContent $irule -WarningAction Stop | Out-Null 
-      Write-Verbose "Successfully Created New iRule $dns" 
+      Write-Output "Successfully Created New iRule $dns" 
     }
 
     #Add iRule
     catch
     {
 
-      Write-Error $_.Exception.Message
-      Write-Error "Failed to create iRule."
+      Write-Warning $_.Exception.Message
+      Write-Warning "Failed to create iRule."
       Rollback-VCD -rollBack_Element @('virtual','pool','node','serverssl','clientssl')
       break
 
@@ -304,14 +340,14 @@ function New-CSN-VCD {
     #Apply iRule
     try  
     {
-      Add-iRuleToVirtualServer -Name $wsa -iRuleName "$vsname" -WarningAction Stop | Out-Null; Write-Verbose "Successfully applied New iRule $dns to $wsa "
+      Add-iRuleToVirtualServer -Name $wsa -iRuleName "$vsname" -WarningAction Stop | Out-Null; Write-Output "Successfully applied New iRule $dns to $wsa "
     }
 
     #Apply iRule
     catch
     {
       
-      Write-Error $_.Exception.Message
+      Write-Warning $_.Exception.Message
       Rollback-VCD -rollBack_Element @('irule','virtual','pool','node','serverssl','clientssl')
       break
     }
@@ -319,9 +355,13 @@ function New-CSN-VCD {
     Generate-Removalcmds
 
 
-  } #end process block               
+  
+  
+} #end process block 
 
-}
+}#end function              
+
+
 
 
 

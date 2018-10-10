@@ -3,8 +3,6 @@
  
   param(
 
-    [Alias("existing acl Name")]
-    [ValidatePattern("[a-zA-Z]{2}-[0-9]*")]
     [Parameter(Mandatory = $true)]
     [string[]]$rollBack_Element = ''
 
@@ -16,7 +14,7 @@
 
     Foreach ($item in $rollBack_Element){
 
-        switch ($rollBack_ElementName) {
+        switch ($item) {
 
            "pool" {
               Write-Warning "Removing Pool....."
@@ -26,10 +24,20 @@
            }
 
            "node" {
-              Write-Warning "Removing Node....."
-              Remove-Node -Name $nodeName -Confirm:$false
-              Write-Warning "Node ${nodeName} has been removed."
-              break
+                try{
+                    
+                      Write-Warning "Removing Node....."
+                      Remove-Node -Name $nodeName -Confirm:$false -ErrorAction Stop
+                      Write-Warning "Node ${nodeName} has been removed."
+                      break
+                    
+                }
+
+                catch{
+
+                    Write-Warning "Problems occured removing node $nodeName."
+                    Write-Warning $_
+                }
            }
 
            "virtual"{
@@ -53,7 +61,7 @@
               If( $serverProfileCreated -eq $true){
                   Write-Warning "Removing Server SSL profile......"
                   Remove-SSLServer -profileName $SSLServerProfile
-                  Write-Output "Removed Server SSL profile $sslClientProfile."
+                  Write-Warning "Removed Server SSL profile $sslClientProfile."
               }
 
             }
@@ -63,7 +71,7 @@
               If( $clientProfileCreated -eq $true){
                   Write-Warning "Removing Client SSL profile......"
                   Remove-SSLClient -profileName $SSLClientProfile
-                  Write-Output "Removed Client SSL profile $SSLServerProfile."
+                  Write-Warning "Removed Client SSL profile $SSLServerProfile."
               }
 
             }

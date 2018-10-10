@@ -47,23 +47,6 @@
         foreach ($profile in $profileName) {
 
 
-$JSONBody = @"
-{
-    "kind":  "tm:ltm:profile:client-ssl:client-sslstate",
-    "name":  "$profileName",
-    "cert":  "$cert",
-    "chain":  "$cert",
-    "key":  "$key"
-
-                    
-}
-    
-"@
-
-    }
-
-
-
             $uri = $F5Session.BaseURL.Replace('/ltm/',"/ltm/profile/client-ssl/~Common~$profileName") 
             $response = Invoke-RestMethodOverride -Method Delete -Uri $URI -WebSession $F5Session.WebSession
             $response
