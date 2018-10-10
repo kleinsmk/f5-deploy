@@ -30,7 +30,15 @@ function New-CSN-VCD {
     [Parameter(Mandatory = $true)]
     [string]$vsIP = '',
 
-    [Alias("Cert Name")]
+    [Alias("Client SSL Profile")]
+    [Parameter(Mandatory = $false)]
+    [string]$sslClientProfile = '',
+
+    [Alias("Server SSL Profile")]
+    [Parameter(Mandatory = $false)]
+    [string]$SSLServerProfile = '',
+
+      [Alias("Cert Name")]
     [Parameter(Mandatory = $false)]
     [string]$certname = '',
 
@@ -40,7 +48,7 @@ function New-CSN-VCD {
 
     [Alias("ASM")]
     [Parameter(Mandatory = $false)]
-    [string]$asmpolicy = '',
+    [string]$asmPolicyName = '',
 
     [Alias("Description")]
     [Parameter(Mandatory = $false)]
@@ -86,12 +94,70 @@ function New-CSN-VCD {
 
   process {
 
-    #Check for existing node
-    $node = Get-Node -Address $nodeIP
+    #New ASM
+    try
+    {
+         #skip if parameter was left blank
+         if(!([string]::IsNullOrEmpty($asmPolicyName))){   
+             #Only build new policy if there is not an existing one on F5
+             $asmPolicy = Get-ASMPolicies -name $asmPolicyName   
+             if([string]::IsNullOrEmpty($asmPolicy)){
+                New-ASMPolicy -policyname $dns
+             }
+         }
+    }
+
+    #New ASM
+    catch
+    {
+         Write-Error $_.Exception.Message
+         Write-Error "Failed to create ASM Policy."
+         break
+    }
+
+    #New SSL Profiles
+    try{
+        
+        if($buildtype -eq "HTTPS"){
+
+            #Powershell makes this soo eloquent! Check if Both profiles arguments are NOT empty or Null.  This way we don't run profile calls if it's not required
+            If( !([string]::IsNullOrEmpty($sslClientProfile)) -and !([string]::IsNullOrEmpty($SSLServerProfile)) ){
+                #Build both
+                New-SSLClient -profileName $sslClientProfile -cert $certname -key $keyname
+                $clientProfileCreated = $true
+                New-SSLServer -profileName $SSLServerProfile -cert $certname -key $keyname
+                $serverProfileCreated = $true
+            }
+            Elseif( [string]::IsNullOrEmpty($sslClientProfile) ){
+                #Build only client
+                New-SSLClient -profileName $sslClientProfile -cert $certname -key $keyname
+                $clientProfileCreated = $true
+            }
+            Elseif( [string]::IsNullOrEmpty($SSLServerProfile) ){
+                #Build only server
+                New-SSLServer -profileName $SSLServerProfile -cert $certname -key $keyname
+                $serverProfileCreated = $true
+            } 
+
+        }
+    }
+
+    #New SSL Profiles
+    catch{
+
+             Write-Error $_.Exception.Message         
+             Write-Error "Failed to create SSL profile."
+             Rollback-VCD -rollBack_Element @('serverssl','clientssl')
+             break
+         }
+
+    }  
 
     #New Node
     try
-    {            
+    {
+        #Check for existing node
+        $node = Get-Node -Address $nodeIP            
         if([string]::IsNullOrEmpty($node)){
           New-Node -Name "$nodeName" -Address "$nodeIP" -Description $desc
           Write-Host "Successfully created New Node $vsname"
@@ -103,21 +169,24 @@ function New-CSN-VCD {
         }
     }
 
-    catch #New Node Catch
+    #New Node
+    catch 
     {
       Write-Warning $_.Exception.Message
       Write-Error "Failed to create node."
       break
     }
 
-    try #Add New Pool
+    #Add New Pool
+    try 
     {
       New-Pool -Name "$vsName" -LoadBalancingMode round-robin -Description $desc -ErrorAction Stop
       Write-Verbose "Successfully Created New Pool $vsName"
 
     }
 
-    catch #add New Pool
+    #Add New Pool
+    catch 
     {
 
       Write-Error $_.Exception.Message
@@ -127,14 +196,16 @@ function New-CSN-VCD {
 
     }
 
-    try #Add Pool Member
+    #Add Pool Member
+    try 
     { 
       Add-PoolMember -PoolName "$vsName" -Name "$nodeName" -PortNumber "$nodePort" -Status Enabled -Description $desc -ErrorAction Stop | Out-Null
       Write-Verbose "Successfully Added New Pool Member $nodeIP"
 
     }
 
-    catch #Add Pool Member Catch
+    #Add Pool Member
+    catch
     {
       Write-Error $_.Exception.Message
       Write-Error "Failed to add pool member to pool."
@@ -143,14 +214,16 @@ function New-CSN-VCD {
 
     }
 
-    try #Add pool monitor    
+    #Add pool monitor
+    try     
     { 
       Add-PoolMonitor -PoolName "$vsName" -Name tcp -ErrorAction Stop | Out-Null
       Write-Verbose "Successfully Added New Pool Monitor" 
       
     }
 
-    catch #Add pool monitor catch
+    #Add pool monitor
+    catch
     {
       Write-Error $_.Exception.Message
       Write-Error "Failed to add pool monitor."
@@ -159,13 +232,15 @@ function New-CSN-VCD {
 
     }
 
-    try #Add New Virtual Server
+    #Add New Virtual Server
+    try
     { 
       New-VirtualServer -Name "$vsName" -DestinationPort "$vsPort" -DestinationIP "$vsIP" -SourceAddressTranslationType automap `
          -ipProtocol tcp -DefaultPool $vsName -ProfileNames "http-X-Forwarder" -Description $desc -ErrorAction Stop | Out-Null
       Write-Verbose "Successfully Added New Virtual Server $vsName ${vsIP}:${vsPort} " }
 
-    catch # Add New Virtual Server Catch
+    #Add New Virtual Server
+    catch
     {
       Write-Error $_.Exception.Message
       Write-Error "Failed to create virtual server."
@@ -173,15 +248,17 @@ function New-CSN-VCD {
       break
 
     }
-
-    try #Add iRule
+    
+    #Add iRule
+    try
     { 
       $irule = "when HTTP_REQUEST {switch -glob [HTTP::host] {`"$dns`" { virtual $vsName }}}"
       Set-iRule -Name "$vsName" -iRuleContent $irule -WarningAction Stop | Out-Null 
       Write-Verbose "Successfully Created New iRule $dns" 
     }
 
-    catch #Add irule Catch
+    #Add iRule
+    catch
     {
 
       Write-Error $_.Exception.Message
@@ -191,12 +268,14 @@ function New-CSN-VCD {
 
     }
 
-    try #Apply iRule 
+    #Apply iRule
+    try  
     {
       Add-iRuleToVirtualServer -Name $wsa -iRuleName "$vsname" -WarningAction Stop | Out-Null; Write-Verbose "Successfully applied New iRule $dns to $wsa "
     }
 
-    catch #Apply iRule Catch
+    #Apply iRule
+    catch
     {
       
       Write-Error $_.Exception.Message

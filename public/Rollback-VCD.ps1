@@ -19,14 +19,14 @@
         switch ($rollBack_ElementName) {
 
            "pool" {
-              Write-Warning "Removing Pool...."
+              Write-Warning "Removing Pool....."
               Remove-Pool -PoolName ${vsName} -Confirm:$false
               Write-Warning "Pool ${vsName} has been removed."
               break
            }
 
            "node" {
-              Write-Warning "Removing Node...."
+              Write-Warning "Removing Node....."
               Remove-Node -Name $nodeName -Confirm:$false
               Write-Warning "Node ${nodeName} has been removed."
               break
@@ -40,7 +40,7 @@
            }
 
            "irule"{
-              Write-Warning "Removing iRule from Virtual Server"
+              Write-Warning "Removing iRule from Virtual Server....."
               Remove-iRuleFromVirtualServer -Name $wsa -iRuleName $vsname
               Write-Output "Removed iRule $vsname fom Virtual $vsname"
               Write-Warning "Removing iRule"
@@ -49,13 +49,27 @@
             }
 
             "serverssl"{
+              If( $serverProfileCreated -eq $true){
+                  Write-Warning "Removing Server SSL profile......"
+                  Remove-SSLClient -profileName $sslClientProfile
+                  Write-Output "Removed Client SSL profile $sslClientProfile."
+              }
 
             }
 
             "clientssl"{
+              If( $clientProfileCreated -eq $true){
+                  Write-Warning "Removing Client SSL profile......"
+                  Remove-SSLClient -profileName $SSLServerProfile
+                  Write-Output "Removed Server SSL profile $SSLServerProfile."
+              }
+
             }
 
+            #do we really want to remove ASM profile since it takes sooo long to create?
+            #for the moment we are going to not rollback ASM policies as they will only be created if
             "asm"{
+          
 
             }
                 
