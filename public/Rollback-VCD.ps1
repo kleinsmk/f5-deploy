@@ -19,7 +19,6 @@
         switch ($rollBack_ElementName) {
 
            "pool" {
-              Write-Error "Failed to create pool."
               Write-Warning "Removing Pool...."
               Remove-Pool -PoolName ${vsName} -Confirm:$false
               Write-Warning "Pool ${vsName} has been removed."

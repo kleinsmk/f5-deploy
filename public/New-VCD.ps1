@@ -121,7 +121,7 @@ function New-CSN-VCD {
     {
 
       Write-Error $_.Exception.Message
-      Write-Error "Failed to add Pool."
+      Write-Error "Failed to create pool."
       Rollback-VCD -rollBack_Element @('node')
       break
 
@@ -153,7 +153,7 @@ function New-CSN-VCD {
     catch #Add pool monitor catch
     {
       Write-Error $_.Exception.Message
-      Write-Error "Failed to add pool monitor"
+      Write-Error "Failed to add pool monitor."
       Rollback-VCD -rollBack_Element @('pool','node')
       break
 
