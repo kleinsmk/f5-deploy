@@ -46,13 +46,28 @@
             $object = [pscustomobject]@{ 'kind' = 'tm:asm:policies:policystate' ; 'virtualServers' = @()}
             
             $object.virtualServers += $servers
-            
-            
+                       
             $uri = $F5Session.BaseURL.Replace('/ltm/',"/asm/policies/$($existingPolicy.id)") 
             $jssonbody =  $object | ConvertTo-Json
-            $jssonbody
             $response = Invoke-RestMethodOverride -Method PATCH -Uri $URI -Body $jssonbody -ContentType 'application/json' -WebSession $F5Session.WebSession
             $response
+
+            #apply policy on virutal server
+            $uri = $F5Session.BaseURL.Replace('/ltm/',"/ltm/virtual/~Common~$serverName") 
+
+$json = @"
+
+{
+	"securityLogProfiles": [
+        "\"/Common/Log illegal requests\""
+    ]
+}
+
+"@
+            $response = Invoke-RestMethodOverride -Method PATCH -Uri $URI -Body $json -ContentType 'application/json' -WebSession $F5Session.WebSession
+            $response
+ 
+
         }
         
     }#end process

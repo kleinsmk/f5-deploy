@@ -6,6 +6,7 @@ function New-CSN-VCD {
     Adds a new VCD stack to F5
 .NOTES
     Requires F5-LTM modules from github
+    
 #>
   [CmdletBinding()]
   param(
@@ -94,51 +95,7 @@ function New-CSN-VCD {
 
   process {
 
-    #New ASM
-    try
-    {
-           
-         #skip if parameter was left blank
-         if(!([string]::IsNullOrEmpty($asmPolicyName))){ 
-           
-             #check for existing policy with default dns name
-             $asmPolicy = Get-ASMPolicies -name $asmPolicyName 
-               
-             if(!([string]::IsNullOrEmpty($asmPolicy))){
-                Write-Output "Using existing ASM Policy: $asmPolicyName"
-             }
-             else{
-                Write-Output "Policy name $asmPolicyName was not found. Skipping Policy Creation."
-            }
-                      
-         }
-
-         #if policy wasn't specified create a new one using default name
-         else{
-                #check for existing policy with default dns name
-                $asmPolicy = Get-ASMPolicies -name $dns
-                 
-                #if something came back  
-                if(!([string]::IsNullOrEmpty($asmPolicy))){
-                  Write-Output "Using existing ASM Policy: $dns"  
-                }
-
-                else{
-                  Write-Output "Creating New ASM policy....."
-                  New-ASMPolicy -policyname $dns -Verbose | Out-Null
-                  Write-Output "New ASM Policy $dns has been created."
-                }
-            }
-    }
-
-    #New ASM
-    catch
-    {
-         Write-Warning $_.Exception.Message
-         Write-Warning "Failed to create ASM Policy."
-         break
-    }
-
+   
     #New SSL Profiles
     try{
         
@@ -176,8 +133,8 @@ function New-CSN-VCD {
 
     #New SSL Profiles
     catch{
-
-             Write-Warning $_         
+              
+             Write-Warning $_        
              Write-Warning "Failed to create SSL profile.  Please ensure Cert and Key are present and files names match exactly."
              Rollback-VCD -rollBack_Element @('serverssl','clientssl')
              break
@@ -352,10 +309,89 @@ function New-CSN-VCD {
       break
     }
 
+     #New ASM
+    try
+    {
+         Write-Output "Checking for existing ASM policy....."  
+         #If existing policy parameter has been passed
+         if(!([string]::IsNullOrEmpty($asmPolicyName))){ 
+           
+             #Check passed policy for existing policy on F5
+             $asmPolicy = Get-ASMPolicies -name $asmPolicyName 
+             
+             #if policy exits   
+             if(!([string]::IsNullOrEmpty($asmPolicy))){
+                Write-Output "Using existing ASM Policy: $asmPolicyName"
+             }
+             #otherwise skip policy creation
+             else{
+                Write-Output "Policy name $asmPolicyName was not found. Skipping Policy Creation."
+                #set policy null
+                $asmPolicyName = ''
+            }
+                      
+         }
+
+         #if policy wasn't specified create a new one using default dns name
+         else{
+                #check for existing policy with default dns name
+                $asmPolicy = Get-ASMPolicies -name $dns
+                 
+                #if something came back use the existing policy
+                if(!([string]::IsNullOrEmpty($asmPolicy))){
+                  Write-Output "Using existing ASM Policy: $dns"
+                }
+                #otherwise build a new one out
+                else{
+                  Write-Output "Creating New ASM policy....."
+                  New-ASMPolicy -policyname $dns -Verbose | Out-Null
+                  Write-Output "New ASM Policy $dns has been created."
+                }
+            }
+    }
+
+    #New ASM
+    catch
+    {
+         Write-Warning $_.Exception.Message
+         Write-Warning "Failed to create ASM Policy.  Run `"New-ASMPolicy -policyname name`" manually."
+         break
+    }
+
+
+    #apply asm policy to VS and add log illegal requests
+    try
+    {
+        #if asm wasn't used use dns name
+        if( [string]::IsNullOrEmpty($asmPolicy) ) {
+            Write-Output "Applying policy to virtual server $vsName.....(this may take a moment)"
+            Add-ASMtoVirutal -serverName $vsName -policyName $dns | Out-Null
+            Write-Output "ASM policy successfully applied to virtual server $vsName."
+        }
+        #otherwise use the passed policy name
+        else{
+            Write-Output "Applying policy to virtual server $vsName.....(this may take a moment)"
+            Add-ASMtoVirutal -serverName $vsName -policyName $asmPolicyName | Out-Null
+            Write-Output "ASM policy successfully applied to virtual server $vsName."
+        }
+
+
+
+    }
+
+    catch
+    {
+        Write-Warning $_.Exception.Message
+        Write-Warning "Failed to create ASM Policy.  Run `"New-ASMPolicy -policyname name`" manually."
+        break   
+    }
+
+    Write-Output "New F5 VCD Build succeeded!!!!"
+
     Generate-Removalcmds
 
-
-  
+    #For the future maintainer this was written by a programming Sysadmin. Mybad.  It got the job done at the time and follows bracket style.
+    #Some comments were even put in for your condieration.
   
 } #end process block 
 
