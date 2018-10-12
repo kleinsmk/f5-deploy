@@ -1,11 +1,12 @@
 ﻿
 
-function New-VCD {
+function New-CSN-VCD {
 <#
 .SYNOPSIS
     Adds a new VCD stack to F5
 .NOTES
     Requires F5-LTM modules from github
+    
 #>
   [CmdletBinding()]
   param(
@@ -30,228 +31,394 @@ function New-VCD {
     [Parameter(Mandatory = $true)]
     [string]$vsIP = '',
 
-    [ValidateSet('true','false')]
-    [Parameter(Mandatory = $true)]
-    [string]$ssl = '',
+    [Alias("Client SSL Profile")]
+    [Parameter(Mandatory = $false)]
+    [string]$sslClientProfile = '',
 
-    [ValidateSet('AWS_WSA_vs','AWS_WSA_redirect_vs')]
+    [Alias("Server SSL Profile")]
+    [Parameter(Mandatory = $false)]
+    [string]$SSLServerProfile = '',
+
+      [Alias("Cert Name")]
+    [Parameter(Mandatory = $false)]
+    [string]$certname = '',
+
+    [Alias("Key Name")]
+    [Parameter(Mandatory = $false)]
+    [string]$keyname = '',
+
+    [Alias("ASM")]
+    [Parameter(Mandatory = $false)]
+    [string]$asmPolicyName = '',
+
+    [Alias("Description")]
+    [Parameter(Mandatory = $false)]
+    [string]$desc = '',
+
+    [ValidateSet('HTTP','HTTPS')]
     [Parameter(Mandatory = $true)]
-    [string]$wsa = ''
+    [string]$buildtype = ''
+
+    #Commenting out to add hardcoded options probably a bad idea
+    #[ValidateSet('AWS_WSA_vs','AWS_WSA_redirect_vs')]
+    #[Parameter(Mandatory = $true)]
+    #[string]$wsa = ''
 
 
   )
+
   begin {
+    
+    Check-F5Token
 
-    if ($ssl -eq 'true') { $vsName = $dns + "_https" }
-    else { $vsName = $dns + "_http" }
+    switch ($buildtype) {
 
-    #Test that the F5 session is in a valid format
-    Test-F5Session ($F5Session) | Out-Null
+       "HTTP" {
+            $ssl = $false
+            $vsName = $dns + "_http"
+            $nodeName = $dns
+            $wsa = 'AWS_WSA_redirect_vs'
+            break
+       }
 
-    $exp = $F5Session.WebSession.Headers. 'Token-Expiration'
-    #Test if session valid
-    if ($exp -lt (date)) {
-
-      Write-Warning "F5 Session is not active or has expired." -ErrorAction Stop
-      break
+       "HTTPS" {
+            $ssl = $true
+            $vsName = $dns + "_https"
+            $nodeName = $dns 
+            $wsa = 'AWS_WSA_vs'
+            break
+       }
 
     }
 
-  }
+  }#end begin block
+
   process {
 
-    try
+    Write-Output "Starting new build....."
 
-    {
-      New-Node -Name "$vsName" -Address "$nodeIP"
-      Write-Host "Successfully created New Node $vsname"
+    #New SSL Profiles
+    try{
+        
+        if($buildtype -eq "HTTPS"){
+
+            #Powershell makes this soo eloquent! Check if Both profiles arguments are NOT empty or Null.  This way we don't run profile calls if it's not required
+            If( (!([string]::IsNullOrEmpty($sslClientProfile))) -and (!([string]::IsNullOrEmpty($SSLServerProfile))) ){
+                
+                #Build both
+                Write-Output "Creating new Client profile....."
+                New-SSLClient -profileName $sslClientProfile -cert $certname -key $keyname | Out-Null
+                Write-Output "Client Profile created."
+                $clientProfileCreated = $true
+                #check for default ssl profile
+                if( $SSLServerProfile -eq "serverssl" ){
+                    Write-Output "Using deafult serverssl profile."
+                    $serverProfileCreated = $true
+                }
+                Else{
+                    Write-Output "Creating new Server profile....."
+                    New-SSLServer -profileName $SSLServerProfile -cert $certname -key $keyname | Out-Null
+                    Write-Output "Server Profile created."
+                    $serverProfileCreated = $true
+                }
+            }
+            Elseif( !([string]::IsNullOrEmpty($sslClientProfile)) ){
+                #Build only client
+                Write-Output "Creating new Client profile....."
+                New-SSLClient -profileName $sslClientProfile -cert $certname -key $keyname | Out-Null
+                Write-Output "Client Profile created."
+                $clientProfileCreated = $true
+            }
+            Elseif( !([string]::IsNullOrEmpty($SSLServerProfile)) ){
+                #Build only server
+                #check for default ssl option
+                if( $SSLServerProfile -eq "serverssl" ){
+                    Write-Output "Using deafult serverssl profile."
+                    $serverProfileCreated = $true
+                }
+                Else{
+                    Write-Output "Creating new Server profile....."
+                    New-SSLServer -profileName $SSLServerProfile -cert $certname -key $keyname | Out-Null
+                    Write-Output "Server Profile created."
+                    $serverProfileCreated = $true
+                }
+            } 
+
+        }
     }
 
-    catch
+    #New SSL Profiles
+    catch{
+              
+             [string]$message =  $_
+             #clean up error output a bit
+             Write-Warning ($message -replace "{`"code`":409,`"message`":`"01020066:3: ")        
+             Write-Warning "Failed to create SSL profile.  Please ensure Cert and Key are present and files names match exactly."
+             Rollback-VCD -rollBack_Element @('serverssl','clientssl')
+             break
+         
 
+    }  
+
+    #New Node
+    try
+    {
+        #Check for existing node
+        $node = Get-Node -Address $nodeIP            
+        if([string]::IsNullOrEmpty($node)){
+          Write-Host "Creating new node......"
+          New-Node -Name "$nodeName" -Address "$nodeIP" -Description $desc | Out-Null
+          Write-Host "Successfully created New Node $nodeName with IP $nodeIP"
+        }
+
+        else{
+             
+             $nodeName = $node.name 
+             Write-Host "Using Existing Node $nodeName"
+        }
+    }
+
+    #New Node
+    catch 
     {
       Write-Warning $_.Exception.Message
+      Write-Warning "Failed to create node."
+      Rollback-VCD -rollBack_Element @('serverssl','clientssl')
       break
     }
 
-    try #Add New Pool
-
-    {
-      New-Pool -Name "$vsName" -LoadBalancingMode round-robin -ErrorAction Stop
-      Write-Verbose "Successfully Created New Pool $vsName"
-
-    }
-
-    catch
-
-    {
-
-      Write-Error $_.Exception.Message
-
-      Write-Warning "Rolling back changes....."
-      Write-Warning "Removing Pool...."
-      Remove-Pool -PoolName ${vsName} -Confirm:$false
-      Write-Warning "Pool ${vsName} has been removed."
-      Write-Warning "Removing Node...."
-      Remove-Node -Name $vsName -Confirm:$false
-      Write-Warning "Node ${vsName} has been removed."
-      break
-
-    }
-
-
-    try #Add Pool Member Try Catch
-
-    { 
-      Add-PoolMember -PoolName "$vsName" -Name "$vsName" -PortNumber "$nodePort" -Status Enabled -ErrorAction Stop | Out-Null
-      Write-Verbose "Successfully Added New Pool Member $nodeIP"
-
-    }
-
-    catch #Add Pool Member Try Catch
-
-    {
-      Write-Error $_.Exception.Message
-
-      Write-Warning "Rolling back changes....."
-      Write-Warning "Removing Pool...."
-      Remove-Pool -PoolName ${vsName} -Confirm:$false
-      Write-Warning "Pool ${vsName} has been removed."
-      Write-Warning "Removing Node...."
-      Remove-Node -Name $vsName -Confirm:$false
-      Write-Warning "Node ${vsName} has been removed."
-      break
-
-    }
-
-
+    #Add New Pool
     try 
-    
+    {
+      Write-Output "Creating New Pool....."
+      New-Pool -Name "$vsName" -LoadBalancingMode round-robin -Description $desc -ErrorAction Stop | Out-Null
+      Write-Output "Successfully Created New Pool $vsName"
+
+    }
+
+    #Add New Pool
+    catch 
+    {
+
+      Write-Warning $_.Exception.Message
+      Write-Warning "Failed to create pool."
+      Rollback-VCD -rollBack_Element @('node','serverssl','clientssl')
+      break
+
+    }
+
+    #Add Pool Member
+    try 
     { 
+      Write-Output "Adding pool member $nodeName to pool $vsName....."
+      Add-PoolMember -PoolName "$vsName" -Name "$nodeName" -PortNumber "$nodePort" -Status Enabled -Description $desc -ErrorAction Stop | Out-Null
+      Write-Output "Successfully Added New Pool Member $nodeIP"
+
+    }
+
+    #Add Pool Member
+    catch
+    {
+      Write-Warning $_.Exception.Message
+      Write-Warning "Failed to add pool member to pool."
+      Rollback-VCD -rollBack_Element @('pool','node','serverssl','clientssl')
+      break
+
+    }
+
+    #Add pool monitor
+    try     
+    { 
+      Write-Output "Adding pool TCP health monitor....." 
       Add-PoolMonitor -PoolName "$vsName" -Name tcp -ErrorAction Stop | Out-Null
-      Write-Verbose "Successfully Added New Pool Monitor" 
+      Write-Output "Successfully Added pool TCP health monitor." 
       
     }
 
+    #Add pool monitor
     catch
-
     {
-      Write-Error $_.Exception.Message
-      Write-Warning "Rolling back changes....."
-      Write-Warning "Removing Pool...."
-      Remove-Pool -PoolName ${vsName} -Confirm:$false
-      Write-Warning "Pool ${vsName} has been removed."
-      Write-Warning "Removing Node...."
-      Remove-Node -Name $vsName -Confirm:$false
-      Write-Warning "Node ${vsName} has been removed."
+      Write-Warning $_.Exception.Message
+      Write-Warning "Failed to add pool monitor."
+      Rollback-VCD -rollBack_Element @('pool','node','serverssl','clientssl')
       break
 
     }
 
-    try 
-
+    #Add New Virtual Server
+    try
     { 
-      New-VirtualServer -Name "$vsName" -DestinationPort "$vsPort" -DestinationIP "$vsIP" -SourceAddressTranslationType automap `
-         -ipProtocol tcp -DefaultPool $vsName -ProfileNames "http-X-Forwarder" -ErrorAction Stop | Out-Null
-      Write-Verbose "Successfully Added New Virtual Server $vsName ${vsIP}:${vsPort} " }
+            
+            #when both profile arguments have been passed in
+            If( !([string]::IsNullOrEmpty($sslClientProfile)) -and !([string]::IsNullOrEmpty($SSLServerProfile)) ){
+                #Build with both profiles
+                Write-Output "Adding new Virtual Server with client profile $sslClientProfile and server profile $SSLServerProfile....."
+                New-VirtualServer -Name "$vsName" -DestinationPort "$vsPort" -DestinationIP "$vsIP" -SourceAddressTranslationType automap `
+                -ipProtocol tcp -DefaultPool $vsName -ProfileNames @("http-X-Forwarder","$sslClientProfile","$SSLServerProfile") -Description $desc -ErrorAction Stop | Out-Null
+                Write-Output "Successfully Added New Virtual Server $vsName ${vsIP}:${vsPort} " 
 
+            }
+            Elseif( !([string]::IsNullOrEmpty($sslClientProfile)) ){
+                #Build only client
+                 Write-Output "Adding new Virtual Server with client profile $sslClientProfile....."
+                 New-VirtualServer -Name "$vsName" -DestinationPort "$vsPort" -DestinationIP "$vsIP" -SourceAddressTranslationType automap `
+                -ipProtocol tcp -DefaultPool $vsName -ProfileNames @("http-X-Forwarder","$sslClientProfile") -Description $desc -ErrorAction Stop | Out-Null
+                Write-Output "Successfully Added New Virtual Server $vsName ${vsIP}:${vsPort} " 
+            }
+            Elseif( !([string]::IsNullOrEmpty($SSLServerProfile)) ){
+                #Build only server
+                Write-Output "Adding new Virtual Server with server profile $SSLServerProfile....."
+                 New-VirtualServer -Name "$vsName" -DestinationPort "$vsPort" -DestinationIP "$vsIP" -SourceAddressTranslationType automap `
+                -ipProtocol tcp -DefaultPool $vsName -ProfileNames @("http-X-Forwarder","$SSLServerProfile") -Description $desc -ErrorAction Stop | Out-Null
+                Write-Output "Successfully Added New Virtual Server $vsName ${vsIP}:${vsPort} " 
+
+            }
+            #build without profiles
+            Else{
+                Write-Output "Adding new Virtual Server without SSL profiles....."
+                New-VirtualServer -Name "$vsName" -DestinationPort "$vsPort" -DestinationIP "$vsIP" -SourceAddressTranslationType automap `
+                -ipProtocol tcp -DefaultPool $vsName -ProfileNames "http-X-Forwarder" -Description $desc -ErrorAction Stop | Out-Null
+                Write-Output "Successfully Added New Virtual Server $vsName ${vsIP}:${vsPort} " 
+            
+            }
+    }#end New VS Try       
+
+    #Add New Virtual Server
     catch
-
     {
-      Write-Error $_.Exception.Message
+      Write-Warning $_.Exception.Message
+      Write-Warning "Failed to create virtual server."
+      Rollback-VCD -rollBack_Element @('pool','node','serverssl','clientssl')
+      break
 
+    }
+    
+    #Add iRule
+    try
+    { 
+      $irule = "when HTTP_REQUEST {switch -glob [HTTP::host] {`"$dns`" { virtual $vsName }}}"
+      Set-iRule -Name "$vsName" -iRuleContent $irule -WarningAction Stop | Out-Null 
+      Write-Output "Successfully Created New iRule $dns" 
+    }
 
-      Write-Warning "Rolling back changes....."
-      Write-Warning "Removing Pool...."
-      Remove-Pool -PoolName ${vsName} -Confirm:$false | Out-Null
-      Write-Warning "Pool ${vsName} has been removed."
-      Write-Warning "Removing Node...."
-      Remove-Node -Name $vsName -Confirm:$false
-      Write-Warning "Node ${vsName} has been removed."
+    #Add iRule
+    catch
+    {
+
+      Write-Warning $_.Exception.Message
+      Write-Warning "Failed to create iRule."
+      Rollback-VCD -rollBack_Element @('virtual','pool','node','serverssl','clientssl')
       break
 
     }
 
-    #add ssl to asa VS
-
-    $irule = "when HTTP_REQUEST {switch -glob [HTTP::host] {`"$dns`" { virtual $vsName }}}"
-
-    try { Set-iRule -Name "$vsName" -iRuleContent $irule -WarningAction Stop | Out-Null; Write-Verbose "Successfully Created New iRule $dns" }
-
-    catch
-
+    #Apply iRule
+    try  
     {
-
-      $_.Exception.Message
-      Write-Warning "Rolling back changes....."
-      Write-Warning "Revmoing Virtual Sever....."
-      Remove-VirtualServer -Name ${vsName} -Confirm:$false | Out-Null
-      Write-Warning "Virtual server $vsname has been removed."
-      Write-Warning "Removing Pool...."
-      Remove-Pool -PoolName ${vsName} -Confirm:$false | Out-Null
-      Write-Warning "Pool ${vsName} has been removed."
-      Write-Warning "Removing Node...."
-      Remove-Node -Name $vsName -Confirm:$false
-      Write-Warning "Node ${vsName} has been removed."
-      break
-
+      Add-iRuleToVirtualServer -Name $wsa -iRuleName "$vsname" -WarningAction Stop | Out-Null; Write-Output "Successfully applied New iRule $dns to $wsa "
     }
 
-
-    try {
-
-
-      Add-iRuleToVirtualServer -Name $wsa -iRuleName "$vsname" -WarningAction Stop | Out-Null; Write-Verbose "Successfully applied New iRule $dns to $wsa "
-    }
+    #Apply iRule
     catch
     {
-      Write-Error "Failed to Add New iRule to Virutal $vsName"
-      $_.Exception.Message
-
-      Write-Warning "Rolling back changes....."
-      Write-Warning "Removing iRule from Virtual Server"
-      Remove-iRuleFromVirtualServer -Name $wsa -iRuleName $vsname
-      Write-Output "Removed iRule $vsname fom Virtual $vsname"
-      Write-Warning "Removing iRule"
-      Remove-iRule -Name $vsname -Confirm:$false
-      Write-Warning "Removed iRule $vsname ."
-      Write-Warning "Removing Virtual Server"
-      Remove-VirtualServer -Name ${vsName} -Confirm:$false | Out-Null
-      Write-Warning "Virtual server $vsname has been removed."
-      Write-Warning "Removing Pool...."
-      Remove-Pool -PoolName ${vsName} -Confirm:$false
-      Write-Warning "Pool ${vsName} has been removed."
-      Write-Warning "Removing Node...."
-      Remove-Node -Name $vsName -Confirm:$false
-      Write-Warning "Node ${vsName} has been removed."
+      
+      Write-Warning $_.Exception.Message
+      Rollback-VCD -rollBack_Element @('irule','virtual','pool','node','serverssl','clientssl')
       break
+    }
+
+     #New ASM
+    try
+    {
+         Write-Output "Checking for existing ASM policy....."  
+         #If existing policy parameter has been passed
+         if(!([string]::IsNullOrEmpty($asmPolicyName))){ 
+           
+             #Check passed policy for existing policy on F5
+             $asmPolicy = Get-ASMPolicies -name $asmPolicyName 
+             
+             #if policy exits   
+             if(!([string]::IsNullOrEmpty($asmPolicy))){
+                Write-Output "Using existing ASM Policy: $asmPolicyName"
+             }
+             #otherwise skip policy creation
+             else{
+                Write-Output "Policy name $asmPolicyName was not found. Skipping Policy Creation and application."
+                #set policy null
+                Write-Output "New F5 VCD Build succeeded!!!!"
+                Generate-RemovalCmds
+                break
+            }
+                      
+         }
+
+         #if policy wasn't specified create a new one using default dns name
+         else{
+                #check for existing policy with default dns name
+                $asmPolicy = Get-ASMPolicies -name $dns
+                 
+                #if something came back use the existing policy
+                if(!([string]::IsNullOrEmpty($asmPolicy))){
+                  Write-Output "Using existing ASM Policy: $dns"
+                }
+                #otherwise build a new one out
+                else{
+                  Write-Output "Creating New ASM policy....."
+                  New-ASMPolicy -policyname $dns -Verbose | Out-Null
+                  Write-Output "New ASM Policy $dns has been created."
+                }
+            }
+    }
+
+    #New ASM
+    catch
+    {
+         Write-Warning $_.Exception.Message
+         Write-Warning "Failed to create ASM Policy.  Run `"New-ASMPolicy -policyname name`" manually."
+         break
+    }
+
+
+    #apply asm policy to VS and add log illegal requests
+    try
+    {
+        #if asm wasn't used use dns name
+        if( [string]::IsNullOrEmpty($asmPolicyName) ) {
+            Write-Output "Applying policy to virtual server $vsName.....(this may take a moment)"
+            Add-ASMtoVirutal -serverName $vsName -policyName $dns | Out-Null
+            Write-Output "ASM policy successfully applied to virtual server $vsName."
+        }
+        #otherwise use the passed policy name
+        else{
+            Write-Output "Applying policy to virtual server $vsName.....(this may take a moment)"
+            Add-ASMtoVirutal -serverName $vsName -policyName $asmPolicyName | Out-Null
+            Write-Output "ASM policy successfully applied to virtual server $vsName."
+        }
 
 
 
     }
 
+    catch
+    {
+        Write-Warning $_.Exception.Message
+        Write-Warning "Failed to create ASM Policy.  Run `"New-ASMPolicy -policyname name`" manually."
+        Generate-Removalcmds
+        break   
+    }
 
-    @"
+    Write-Output "New F5 VCD Build succeeded!!!!"
 
-                Removal Commands
+    Generate-Removalcmds
 
-Remove-iRuleFromVirtualServer -Name '$wsa' -iRuleName '${vsname}'
-Remove-iRule -Name '${vsname}' -Confirm:`$false
-Remove-VirtualServer -Name ${vsName} -Confirm:`$false
-Remove-Pool -PoolName ${vsName} -Confirm:`$false
-"@
+    #For the future maintainer this was written by a programming Sysadmin. Mybad.  It got the job done at the time and follows bracket style.
+    #Some comments were even put in for your condieration.
+  
+} #end process block 
 
-
-
+}#end function              
 
 
-
-
-
-
-  } #end process block               
-
-}
 
 
 

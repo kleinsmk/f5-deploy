@@ -28,6 +28,10 @@ CR Number from Jira in the format "4340"
 
 .EXAMPLE
 
+.Notes
+
+  You must run for the JiraPS module Set-JiraConfigServer -Server 'https://my.jira.server.com:8080'
+
 
 
 
@@ -54,7 +58,7 @@ CR Number from Jira in the format "4340"
 
   process {
 
-    #Set-JiraConfigServer -Server 'https://my.jira.server.com:8080'  first time jira setup
+
 
     [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 

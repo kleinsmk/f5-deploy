@@ -175,9 +175,10 @@ CR Number from Jira in the format "4340"
       break
     }
 
-    Write-Output "Update APM Policy......"
+   
 
     try{
+      Write-Output "Update APM Policy......"
       Update-APMPolicy -Name "CSN_VPN_Streamlined" -ErrorAction Stop | Write-Verbose
       Write-Output "Policy Updated"
     }
@@ -188,10 +189,33 @@ CR Number from Jira in the format "4340"
       break
     }
 
-  }
- 
-  
+    try{
+      
+      #Close out Comments 
+      Add-JiraIssueComment -Comment "Core Services VPN Config Removal Complete" -Issue $crnumber -VisibleRole 'All Users' | Out-Null
+      Write-Output "[Added Closing Comment]......"
+    }
 
+    catch{
+      Write-Warning "Updating Jira comments failed."
+      $_.Exception.Message
+      break
+    }
+
+    try{
+         #Close Out Ticket
+      Get-JiraIssue -Key $crnumber | Invoke-JiraIssueTransition -Transition 81 | Out-Null
+      Write-Output "Ticket Closed......"
+      Write-Output "VPN Removal Complete!"
+    }
+
+    catch{
+      Write-Warning "Updating Jira comments failed."
+      $_.Exception.Message
+      break
+    }
+
+  }
    
   }#end function brace
   
