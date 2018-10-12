@@ -18,7 +18,7 @@
 
            "pool" {
               Write-Warning "Removing Pool....."
-              Remove-Pool -PoolName ${vsName} -Confirm:$false
+              Remove-Pool -PoolName ${vsName} -Confirm:$false | Out-Null
               Write-Warning "Pool ${vsName} has been removed."
               break
            }
@@ -52,7 +52,7 @@
               Remove-iRuleFromVirtualServer -Name $wsa -iRuleName $vsname
               Write-Output "Removed iRule $vsname fom Virtual $vsname"
               Write-Warning "Removing iRule"
-              Remove-iRule -Name $vsname -Confirm:$false
+              Remove-iRule -Name $vsname -Confirm:$false | Out-Null
               Write-Warning "Removed iRule $vsname ."
             }
 
@@ -60,7 +60,7 @@
               #only remove newly created profiles in failure  
               If( $serverProfileCreated -eq $true){
                   Write-Warning "Removing Server SSL profile......"
-                  Remove-SSLServer -profileName $SSLServerProfile
+                  Remove-SSLServer -profileName $SSLServerProfile | Out-Null
                   Write-Warning "Removed Server SSL profile $sslClientProfile."
               }
 
@@ -70,7 +70,7 @@
             "clientssl"{
               If( $clientProfileCreated -eq $true){
                   Write-Warning "Removing Client SSL profile......"
-                  Remove-SSLClient -profileName $SSLClientProfile
+                  Remove-SSLClient -profileName $SSLClientProfile | Out-Null
                   Write-Warning "Removed Client SSL profile $SSLServerProfile."
               }
 

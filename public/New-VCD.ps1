@@ -95,7 +95,8 @@ function New-CSN-VCD {
 
   process {
 
-   
+    Write-Output "Starting new build....."
+
     #New SSL Profiles
     try{
         
@@ -103,15 +104,23 @@ function New-CSN-VCD {
 
             #Powershell makes this soo eloquent! Check if Both profiles arguments are NOT empty or Null.  This way we don't run profile calls if it's not required
             If( (!([string]::IsNullOrEmpty($sslClientProfile))) -and (!([string]::IsNullOrEmpty($SSLServerProfile))) ){
+                
                 #Build both
                 Write-Output "Creating new Client profile....."
                 New-SSLClient -profileName $sslClientProfile -cert $certname -key $keyname | Out-Null
                 Write-Output "Client Profile created."
                 $clientProfileCreated = $true
-                Write-Output "Creating new Server profile....."
-                New-SSLServer -profileName $SSLServerProfile -cert $certname -key $keyname | Out-Null
-                Write-Output "Server Profile created."
-                $serverProfileCreated = $true
+                #check for default ssl profile
+                if( $SSLServerProfile -eq "serverssl" ){
+                    Write-Output "Using deafult serverssl profile."
+                    $serverProfileCreated = $true
+                }
+                Else{
+                    Write-Output "Creating new Server profile....."
+                    New-SSLServer -profileName $SSLServerProfile -cert $certname -key $keyname | Out-Null
+                    Write-Output "Server Profile created."
+                    $serverProfileCreated = $true
+                }
             }
             Elseif( !([string]::IsNullOrEmpty($sslClientProfile)) ){
                 #Build only client
@@ -122,10 +131,17 @@ function New-CSN-VCD {
             }
             Elseif( !([string]::IsNullOrEmpty($SSLServerProfile)) ){
                 #Build only server
-                Write-Output "Creating new Server profile....."
-                New-SSLServer -profileName $SSLServerProfile -cert $certname -key $keyname | Out-Null
-                Write-Output "Server Profile created."
-                $serverProfileCreated = $true
+                #check for default ssl option
+                if( $SSLServerProfile -eq "serverssl" ){
+                    Write-Output "Using deafult serverssl profile."
+                    $serverProfileCreated = $true
+                }
+                Else{
+                    Write-Output "Creating new Server profile....."
+                    New-SSLServer -profileName $SSLServerProfile -cert $certname -key $keyname | Out-Null
+                    Write-Output "Server Profile created."
+                    $serverProfileCreated = $true
+                }
             } 
 
         }
@@ -134,7 +150,9 @@ function New-CSN-VCD {
     #New SSL Profiles
     catch{
               
-             Write-Warning $_        
+             [string]$message =  $_
+             #clean up error output a bit
+             Write-Warning ($message -replace "{`"code`":409,`"message`":`"01020066:3: ")        
              Write-Warning "Failed to create SSL profile.  Please ensure Cert and Key are present and files names match exactly."
              Rollback-VCD -rollBack_Element @('serverssl','clientssl')
              break
@@ -325,9 +343,11 @@ function New-CSN-VCD {
              }
              #otherwise skip policy creation
              else{
-                Write-Output "Policy name $asmPolicyName was not found. Skipping Policy Creation."
+                Write-Output "Policy name $asmPolicyName was not found. Skipping Policy Creation and application."
                 #set policy null
-                $asmPolicyName = ''
+                Write-Output "New F5 VCD Build succeeded!!!!"
+                Generate-RemovalCmds
+                break
             }
                       
          }
@@ -363,7 +383,7 @@ function New-CSN-VCD {
     try
     {
         #if asm wasn't used use dns name
-        if( [string]::IsNullOrEmpty($asmPolicy) ) {
+        if( [string]::IsNullOrEmpty($asmPolicyName) ) {
             Write-Output "Applying policy to virtual server $vsName.....(this may take a moment)"
             Add-ASMtoVirutal -serverName $vsName -policyName $dns | Out-Null
             Write-Output "ASM policy successfully applied to virtual server $vsName."
@@ -383,6 +403,7 @@ function New-CSN-VCD {
     {
         Write-Warning $_.Exception.Message
         Write-Warning "Failed to create ASM Policy.  Run `"New-ASMPolicy -policyname name`" manually."
+        Generate-Removalcmds
         break   
     }
 
