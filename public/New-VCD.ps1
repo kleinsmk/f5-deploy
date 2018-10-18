@@ -1,6 +1,6 @@
 ﻿
 
-function New-CSN-VCD {
+function New-F5Stack {
 <#
 .SYNOPSIS
     Adds a new VCD stack to F5

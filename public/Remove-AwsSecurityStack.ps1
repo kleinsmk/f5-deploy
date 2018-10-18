@@ -2,7 +2,7 @@
 <#
 .SYNOPSIS
 
-Creates a new AWS VCD stack on the f5 load balancer from a specified Jira Ticket.
+Removes a new AWS VCD stack on the f5 load balancer from a specified Jira Ticket.
 Scrapes the parameters from tickets that look like
 
 .PARAMETER crnumber
@@ -24,7 +24,13 @@ CR Number from Jira in the format "4340"
     [Parameter(Mandatory = $true)]
     [string]$crnumber = '',
 
-    [Parameter(Mandatory = $false)]
+    [Parameter(Mandatory=$false)]
+    [System.Management.Automation.PSCredential]$f5creds,
+
+    [Parameter(Mandatory=$false)]
+    [System.Management.Automation.PSCredential]$jiracreds,
+
+   [Parameter(Mandatory = $false)]
     [string]$onrpemf5ip = 'onpremf5.boozallencsn.com',
 
     [Parameter(Mandatory = $false)]
@@ -48,11 +54,17 @@ CR Number from Jira in the format "4340"
 
     else { $vpnrole = "acl_1_act_full_resource_assign_ag" }
 
+
+
     Write-Output "Please enter your Jira credentials."
 
-    $creds = Get-Credential -Message "Please enter credentials to access Jira"
+    #if creds are null
+    if( !($jiracreds) ) {
 
-    $jiraSesh = New-JiraSession -Credential $creds -ErrorAction Stop
+        $jiracreds = Get-Credential -Message "Please enter credentials to access Jira"
+    }
+
+    $jiraSesh = New-JiraSession -Credential $jiracreds -ErrorAction Stop
 
     if ([string]::IsNullOrEmpty($jiraSesh)) {
 
@@ -73,10 +85,12 @@ CR Number from Jira in the format "4340"
     }
 
          try {
-
-          Write-Output "Please enter you F5 credentials."
-          $creds = Get-Credential -Message "Please enter credentials to access the F5 load balancer"
-          $Global:F5Session = New-F5Session -LTMName $onrpemf5ip -LTMCredentials $creds -Default -PassThru -ErrorAction Stop
+          #f5 null creds
+          if( !($f5creds) ) {
+              Write-Output "Please enter you F5 credentials."
+              $f5creds = Get-Credential -Message "Please enter credentials to access the F5 load balancer"
+          }
+          $Global:F5Session = New-F5Session -LTMName $onrpemf5ip -LTMCredentials $f5creds -Default -PassThru -ErrorAction Stop
 
          }
 
