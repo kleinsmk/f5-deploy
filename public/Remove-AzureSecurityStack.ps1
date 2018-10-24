@@ -1,4 +1,4 @@
-﻿function Remove-AwsSecurityStack {
+﻿function Remove-AzureSecurityStack {
 <#
 .SYNOPSIS
 
@@ -20,9 +20,8 @@ CR Number from Jira in the format "4340"
   param(
 
     [Alias("existing acl Name")]
-    [ValidatePattern("[a-zA-Z]{2}-[0-9]*")]
     [Parameter(Mandatory = $true)]
-    [string]$crnumber = '',
+    [string]$azureID = '',
 
     [Parameter(Mandatory=$false)]
     [System.Management.Automation.PSCredential]$f5creds,
@@ -70,15 +69,6 @@ CR Number from Jira in the format "4340"
 
     }
 
-    $awsId = Get-AwsIdFromJira -crNumber "$crnumber"
-
-    if ([string]::IsNullOrEmpty($awsID)) {
-
-      Write-Warning "Jira was unable to locate ticked based on $crNumber"
-
-      break
-
-    }
 
          try {
           #f5 null creds
@@ -100,8 +90,8 @@ CR Number from Jira in the format "4340"
 
     try {
       Write-Output "Removing existing Role mapping......"
-      Remove-APMRole -acl $awsId -group $awsID -name $vpnrole | Out-Null
-      Write-Output "Removed $awsId mapping from group $awsId"
+      Remove-APMRole -acl $azureID -group $azureID -name $vpnrole | Out-Null
+      Write-Output "Removed $azureID mapping from group $azureID"
     }
     catch {
       Write-Warning "Removing APM Role mapping failed."
@@ -111,8 +101,8 @@ CR Number from Jira in the format "4340"
 
     try {
       Write-Output "Removing ACl......"
-      Remove-Acl -name $awsId | Out-Null
-      Write-Output "Removed ACL $awsID."
+      Remove-Acl -name $azureID | Out-Null
+      Write-Output "Removed ACL $azureID."
     }
 
     catch {
@@ -150,7 +140,7 @@ CR Number from Jira in the format "4340"
    try {
 
           Write-Output "Connecting to AWS F5 (ec2f5.boozallencsn.com)......"
-          $Global:F5Session = New-F5Session -LTMName $awsf5ip -LTMCredentials $creds -Default -PassThru -ErrorAction Stop
+          $Global:F5Session = New-F5Session -LTMName $awsf5ip -LTMCredentials $f5creds -Default -PassThru -ErrorAction Stop
           Write-Output "OK. Connected to AWS F5!"
          }
 
@@ -164,8 +154,8 @@ CR Number from Jira in the format "4340"
 
     try {  
       Write-Output "Removing existing Role mapping......"
-      Remove-APMRole -acl $awsId -group $awsID -name $vpnrole | Out-Null
-      Write-Output "Removed $awsId mapping from group $awsId"
+      Remove-APMRole -acl $azureID -group $azureID -name $vpnrole | Out-Null
+      Write-Output "Removed $azureID mapping from group $azureID"
     }
     catch {
       Write-Warning "Removing APM Role mapping failed."
@@ -175,8 +165,8 @@ CR Number from Jira in the format "4340"
 
     try {
       Write-Output "Removing ACl......"
-      Remove-Acl -name $awsId | Out-Null
-      Write-Output "Removed ACL $awsID."
+      Remove-Acl -name $azureID | Out-Null
+      Write-Output "Removed ACL $azureID."
     }
 
     catch {
