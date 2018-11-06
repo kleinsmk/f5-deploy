@@ -43,6 +43,12 @@ CR Number from Jira in the format "4340"
     [ValidatePattern("[a-zA-Z]{2}-[0-9]*")]
     [Parameter(Mandatory = $true)]
     [string]$crnumber = '',
+    
+    [Parameter(Mandatory=$false)]
+    [System.Management.Automation.PSCredential]$f5creds,
+
+    [Parameter(Mandatory=$false)]
+    [System.Management.Automation.PSCredential]$jiracreds,
 
     [Parameter(Mandatory = $false)]
     [string]$onrpemf5ip = 'onpremf5.boozallencsn.com',
@@ -68,11 +74,13 @@ CR Number from Jira in the format "4340"
 
     else { $vpnrole = "acl_1_act_full_resource_assign_ag" }
 
-    Write-Output "Please enter your Jira credentials."
+    #if creds are null
+    if( !($jiracreds) ) {
 
-    $creds = Get-Credential -Message "Please enter credentials to access Jira"
+        $jiracreds = Get-Credential -Message "Please enter credentials to access Jira"
+    }
 
-    $jiraSesh = New-JiraSession -Credential $creds -ErrorAction Stop
+    $jiraSesh = New-JiraSession -Credential $jiracreds -ErrorAction Stop
 
     if ([string]::IsNullOrEmpty($jiraSesh)) {
 
@@ -94,10 +102,13 @@ CR Number from Jira in the format "4340"
     }
 
          try {
+          #f5 null creds
+          if( !($f5creds) ) {
+              Write-Output "Please enter you F5 credentials."
+              $creds = Get-Credential -Message "Please enter credentials to access the F5 load balancer"    
+          }
 
-          Write-Output "Please enter you F5 credentials."
-          $creds = Get-Credential -Message "Please enter credentials to access the F5 load balancer"
-          $Global:F5Session = New-F5Session -LTMName $onrpemf5ip -LTMCredentials $creds -Default -PassThru -ErrorAction Stop
+          $Global:F5Session = New-F5Session -LTMName $onrpemf5ip -LTMCredentials $f5creds -Default -PassThru -ErrorAction Stop
 
          }
 
@@ -160,12 +171,12 @@ CR Number from Jira in the format "4340"
       break
     }
   #============================================================================================================
-  #Add Same ACL build to AWS F5
+  #Add Same ACL build to AWS F5 this needs to be modularized in a future relase for maintainability
   
    try {
 
           Write-Output "Connecting to AWS F5 (ec2f5.boozallencsn.com)......"
-          $Global:F5Session = New-F5Session -LTMName $awsf5ip -LTMCredentials $creds -Default -PassThru -ErrorAction Stop
+          $Global:F5Session = New-F5Session -LTMName $awsf5ip -LTMCredentials $f5creds -Default -PassThru -ErrorAction Stop
 
          }
 
