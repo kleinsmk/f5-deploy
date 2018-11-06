@@ -154,7 +154,7 @@ CR Number from Jira in the format "4340"
    try {
 
           Write-Output "Connecting to AWS F5 (ec2f5.boozallencsn.com)......"
-          $Global:F5Session = New-F5Session -LTMName $awsf5ip -LTMCredentials $creds -Default -PassThru -ErrorAction Stop
+          $Global:F5Session = New-F5Session -LTMName $awsf5ip -LTMCredentials $f5creds -Default -PassThru -ErrorAction Stop
           Write-Output "OK. Connected to AWS F5!"
          }
 
