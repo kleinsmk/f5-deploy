@@ -14,6 +14,7 @@
 .NOTES
  Requires F5-ltm module from github
  
+ Uploaded file MUST have same name as CSR requested domain. ex. test.boozallencsn.com
 #>
     [cmdletBinding()]
     param(
@@ -33,6 +34,7 @@
 
         }
 
+        [System.Net.ServicePointManager]::ServerCertificateValidationCallback = { $true }
         
         }
 

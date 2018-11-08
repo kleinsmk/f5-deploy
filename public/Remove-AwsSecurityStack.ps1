@@ -54,13 +54,9 @@ CR Number from Jira in the format "4340"
 
     else { $vpnrole = "acl_1_act_full_resource_assign_ag" }
 
-
-
-    Write-Output "Please enter your Jira credentials."
-
     #if creds are null
     if( !($jiracreds) ) {
-
+        Write-Output "Please enter your Jira credentials."
         $jiracreds = Get-Credential -Message "Please enter credentials to access Jira"
     }
 
@@ -154,7 +150,7 @@ CR Number from Jira in the format "4340"
    try {
 
           Write-Output "Connecting to AWS F5 (ec2f5.boozallencsn.com)......"
-          $Global:F5Session = New-F5Session -LTMName $awsf5ip -LTMCredentials $creds -Default -PassThru -ErrorAction Stop
+          $Global:F5Session = New-F5Session -LTMName $awsf5ip -LTMCredentials $f5creds -Default -PassThru -ErrorAction Stop
           Write-Output "OK. Connected to AWS F5!"
          }
 
