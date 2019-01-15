@@ -16,8 +16,12 @@ function New-F5Stack {
     [string]$dns = '',
 
     [Alias("Node IP")]
-    [Parameter(Mandatory = $true)]
+    [Parameter(Mandatory = $false)]
     [string]$nodeIP = '',
+    
+    [Alias("Node FQDN")]
+    [Parameter(Mandatory = $false)]
+    [string]$nodeFQDN = '',
 
     [Alias("Node Port ")]
     [Parameter(Mandatory = $true)]
@@ -75,17 +79,20 @@ function New-F5Stack {
 
        "HTTP" {
             $ssl = $false
-            $vsName = $dns + "_http"
-            $nodeName = $dns
+            #trim removes incompatiable wild card from valid *.something.com FQDNS
+            $vsName = $dns.TrimStart('*.') + "_http"
+            $nodeName = $dns.TrimStart('*.')
             $wsa = 'AWS_WSA_redirect_vs'
+            $iruleDns = $dns
             break
        }
 
        "HTTPS" {
             $ssl = $true
-            $vsName = $dns + "_https"
-            $nodeName = $dns 
+            $vsName = $dns.TrimStart('*.') + "_https"
+            $nodeName = $dns.TrimStart('*.') 
             $wsa = 'AWS_WSA_vs'
+            $iruleDns = $dns
             break
        }
 
@@ -163,19 +170,32 @@ function New-F5Stack {
     #New Node
     try
     {
-        #Check for existing node
-        $node = Get-Node -Address $nodeIP            
-        if([string]::IsNullOrEmpty($node)){
-          Write-Host "Creating new node......"
-          New-Node -Name "$nodeName" -Address "$nodeIP" -Description $desc | Out-Null
-          Write-Host "Successfully created New Node $nodeName with IP $nodeIP"
+        #if nodeip is not empty
+        if( !([string]::IsNullOrEmpty($nodeIP)) ) {
+            #Check for existing node
+            $node = Get-Node -Address $nodeIP            
+            if([string]::IsNullOrEmpty($node)){
+              Write-Host "Creating new node......"
+              New-Node -Name "$nodeName" -Address "$nodeIP" -Description $desc -ErrorAction Stop | Out-Null
+              Write-Host "Successfully created New Node $nodeName with IP $nodeIP"
+            }
+
+            else{
+             
+                 $nodeName = $node.name 
+                 Write-Host "Using Existing Node $nodeName"
+            }
         }
 
-        else{
-             
-             $nodeName = $node.name 
-             Write-Host "Using Existing Node $nodeName"
+        else {
+
+            Write-Host "Creating new node......"
+            New-Node -Name "$nodeName" -FQDN $nodeFQDN -AddressType ipv4 -AutoPopulate disabled -Description $desc -ErrorAction Stop| Out-Null
+            Write-Host "Successfully created New Node $nodeName with FQDN $nodeFQDN"
+            
         }
+
+
     }
 
     #New Node
@@ -354,18 +374,20 @@ function New-F5Stack {
 
          #if policy wasn't specified create a new one using default dns name
          else{
+                $asmPolicyName = $dns.TrimStart('*.')
+                
                 #check for existing policy with default dns name
-                $asmPolicy = Get-ASMPolicies -name $dns
+                $asmPolicy = Get-ASMPolicies -name $asmPolicyName 
                  
                 #if something came back use the existing policy
                 if(!([string]::IsNullOrEmpty($asmPolicy))){
-                  Write-Output "Using existing ASM Policy: $dns"
+                  Write-Output "Using existing ASM Policy: $asmPolicyName"
                 }
                 #otherwise build a new one out
                 else{
                   Write-Output "Creating New ASM policy....."
-                  New-ASMPolicy -policyname $dns -Verbose | Out-Null
-                  Write-Output "New ASM Policy $dns has been created."
+                  New-ASMPolicy -policyname $asmPolicyName -Verbose | Out-Null
+                  Write-Output "New ASM Policy $asmPolicyName has been created."
                 }
             }
     }
@@ -382,20 +404,10 @@ function New-F5Stack {
     #apply asm policy to VS and add log illegal requests
     try
     {
-        #if asm wasn't used use dns name
-        if( [string]::IsNullOrEmpty($asmPolicyName) ) {
-            Write-Output "Applying policy to virtual server $vsName.....(this may take a moment)"
-            Add-ASMtoVirutal -serverName $vsName -policyName $dns | Out-Null
-            Write-Output "ASM policy successfully applied to virtual server $vsName."
-        }
-        #otherwise use the passed policy name
-        else{
+
             Write-Output "Applying policy to virtual server $vsName.....(this may take a moment)"
             Add-ASMtoVirutal -serverName $vsName -policyName $asmPolicyName | Out-Null
             Write-Output "ASM policy successfully applied to virtual server $vsName."
-        }
-
-
 
     }
 
