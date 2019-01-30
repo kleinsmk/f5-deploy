@@ -7,12 +7,12 @@
 .PARAMETER serverName
  Name of the virtual server
 
-.PARAMETER policy
+.PARAMETER policyName
  Name of existing ASM policy you wish to apply to a virtual server.
 
 .EXAMPLE
- Add-ASMtoVirutal -serverName newsite.com -policy newsite.com_asm
- 
+ Add-ASMtoVirutal -serverName newsite.com -policyName newsite.com_asm
+
 .NOTES
  Requires f5-ltm from github
  
@@ -22,10 +22,10 @@
         
         
         [Parameter(Mandatory=$true)]
-        [string[]]$serverName='',
+        [string[]]$serverName,
 
         [Parameter(Mandatory=$true)]
-        [string[]]$policyName=''
+        [string[]]$policyName
     )
 
     begin {

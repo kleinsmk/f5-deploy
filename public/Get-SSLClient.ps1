@@ -1,8 +1,7 @@
 ﻿Function Get-SSLClient {
 <#
 .SYNOPSIS
- Gets a ssl server profile.
-.DESCRIPTION
+ Gets a ssl client profile object.
  
 .PARAMETER profileName
  Name of profile to get.
@@ -42,11 +41,11 @@
 
             $uri = $F5Session.BaseURL.Replace('/ltm/',"/ltm/profile/client-ssl/~Common~${profilename}")
             
-            try{ 
+
             $response = Invoke-RestMethodOverride -Method GET -Uri $URI -WebSession $F5Session.WebSession
             $response
-            }
-            catch{}
+            
+            
         }
         
 }

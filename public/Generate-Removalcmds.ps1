@@ -1,4 +1,10 @@
-﻿function Generate-RemovalCmds {
+﻿<#
+.SYNOPSIS
+        Creates Removal commands for New-F5 stack.
+.DESCRIPTION
+        This is a private funciton.  Will need to explore migrating this to a true private folder.
+#>
+function Generate-RemovalCmds {
 
         @"
 

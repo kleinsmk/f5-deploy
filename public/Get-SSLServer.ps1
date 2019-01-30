@@ -1,7 +1,7 @@
 ﻿Function Get-SSLServer {
 <#
 .SYNOPSIS
- Gets a ssl server profile.
+ Gets a ssl server profile object.
 .DESCRIPTION
  
 .PARAMETER profileName

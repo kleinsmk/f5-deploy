@@ -1,7 +1,7 @@
 ﻿Function New-ASMPolicy {
 <#
 .SYNOPSIS
-    Creates a new ASM policy.
+    Creates a new ASM policy and sets whitelist exclusions for 128.229.4.2, 156.80.4.2, and a do not trust for 54.225.156.133
 .PARAMETER name
     The new name of the ASM policy
 .EXAMPLE

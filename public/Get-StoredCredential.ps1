@@ -1,6 +1,8 @@
 ﻿<#
     .SYNOPSIS
     Gets a PowerShell Credential (PSCredential) from the Windows Credential Manager
+    
+    This is a 3rd party script included to faciliate stored credential retrieval on windows
 
     .DESCRIPTION
     Adapted from: http://stackoverflow.com/questions/7162604/get-cached-credentials-in-powershell-from-windows-7-credential-manager
@@ -19,7 +21,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
     The name of the target login informations in the Windows Credential Manager
 
     .EXAMPLE
-    .\Get-CredentialFromWindowsCredentialManager.ps1 tfs.codeplex.com
+    .\Get-Get-StoredCredntial -TargetName tfs.codeplex.com
 
     UserName                             Password
     --------                             --------

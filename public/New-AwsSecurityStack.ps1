@@ -2,38 +2,44 @@
 <#
 .SYNOPSIS
 
-Creates a new AWS VCD stack on the f5 load balancer from a specified Jira Ticket.
+Creates a new project VPN config from a specified Jira Ticket.  Currently only works iwth single subnet projects.
 Scrapes the parameters from tickets that look like
 
 Actions:
-  User Account Creation:
-    Owner/Manager: [3]Smith, Hayden [USA]
-    Technical POC: [4]Smith, Hayden [USA]
-    Project Admin: [5]Smith, Hayden [USA]
-    Project Admin: [6]Grebbien, Danielle [USA]
     Create a CSN AD security group named: AWS_293853093962
 
 AWS Security Information:
-  AWS Account #: 293853093962
-  Environment ID: CSN-ENV-C-168
-  Environment CSR EIP: 34.200.66.43
-  Environment CSR Internal IP: 10.194.83.148
-  Security Stack VPC CIDR: 10.194.83.128/25
   User Private Subnet: 10.194.83.192/26
 
 .PARAMETER crnumber
 
 CR Number from Jira in the format "4340"
 
+.PARAMETER f5creds
+
+Powershell crednetial object containing F5 login credentials
+
+.PARAMETER jiracreds
+
+Powershell crednetial object containing F5 login credentials
+
+.PARAMETER onpremf5ip
+
+IP or DNS of onpremise F5 device.  Defaults to onpremf5.boozallencsn.com and generally can be omitted.
+
+.PARAMETER awsf5ip
+
+IP or DNS of AWS F5 device in VCD.  Defaults to ec2f5.boozallencsn.com and generally can be omitted.
+
+.PARAMETER role
+
+Switch paramter for dev or prod.  Defaults to prod if omitted.
 
 .EXAMPLE
 
 .Notes
 
-  You must run for the JiraPS module Set-JiraConfigServer -Server 'https://my.jira.server.com:8080'
-
-
-
+  It is required that the jirasever have been set using JiraPS module Set-JiraConfigServer -Server 'https://my.jira.server.com:8080'
 
 #>
   [CmdletBinding()]
@@ -51,7 +57,7 @@ CR Number from Jira in the format "4340"
     [System.Management.Automation.PSCredential]$jiracreds,
 
     [Parameter(Mandatory = $false)]
-    [string]$onrpemf5ip = 'onpremf5.boozallencsn.com',
+    [string]$onpremf5ip = 'onpremf5.boozallencsn.com',
 
     [Parameter(Mandatory = $false)]
     [string]$awsf5ip = 'ec2f5.boozallencsn.com',
@@ -108,7 +114,7 @@ CR Number from Jira in the format "4340"
               $creds = Get-Credential -Message "Please enter credentials to access the F5 load balancer"    
           }
 
-          $Global:F5Session = New-F5Session -LTMName $onrpemf5ip -LTMCredentials $f5creds -Default -PassThru -ErrorAction Stop
+          $Global:F5Session = New-F5Session -LTMName $onpremf5ip -LTMCredentials $f5creds -Default -PassThru -ErrorAction Stop
 
          }
 

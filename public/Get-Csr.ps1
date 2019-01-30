@@ -1,22 +1,14 @@
 ﻿Function Get-Csr {
 <#
 .SYNOPSIS
-
-.PARAMETER name
-
-.PARAMETER 
-
-.PARAMETER 
-
-
+    Fetches existing or created CSR files from and F5 Load Balancer
+.Description
+    User generally must specify .csr at the end of the common name used to generate the csr. Returns CSR text directly to console output.  
+.PARAMETER csrName
+    CSR to retrieve for a specified commonName.  Generally must have .csr appened to the end like boozallencsn.com.csr
 .EXAMPLE
-
-.EXAMPLE
-
-
-	
-.EXAMPLE
-   .NOTES
+    Get-Csr -csrName boozallencsn.com.csr
+.NOTES
    
     Requires F5-LTM modules from github
 #>

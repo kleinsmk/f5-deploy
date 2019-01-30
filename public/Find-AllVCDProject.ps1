@@ -1,15 +1,34 @@
 ﻿Function Find-AllVCDProject {
 <#
 .SYNOPSIS
-    Creates a new ASM policy.
-.PARAMETER name
-    The new name of the ASM policy
-.EXAMPLE
-    New-ASMPolicy -name Test_ASM
+    Matches up existing nodes to deployed Acl entries to provide node to AWS_Number matching for project removal.
+.DESCRIPTION
+    Searches all existing acls for subnets then checks every unique subnet against the ip of all the existing nodes.
+    This will then generate output as such:
+    
+    aclname   : AWS_346011101664
+    subnet    : 10.194.31.64/26
+    node_ip   : 10.194.31.104
+    Pool      : ui.test.talentmap_http
+    node_name : ui.test.talentmap.us:80
 
-    Creates a new ASM policy named Test_ASM
+    aclname   : AWS_346011101664
+    subnet    : 10.194.31.64/26
+    node_ip   : 10.194.31.104
+    Pool      : ui.test.talentmap_https
+    node_name : ui.test.talentmap.us:443
+
+.PARAMETER awsID
+    AWS Id number of the project you'd like to try to match pools and nodes too
+.EXAMPLE
+    Find-AllVCDProject -awsID AWS_346011101664
+
+    Tries to match single AWS account (really and ACL) to all the pools and nodes.  This method runs much faster.
 
 .EXAMPLE
+    Find-AllVCDProject -AllProjects Y
+
+    Tries to match every existing LTM pool and node to an existing ACL based on subnet.  Takes serveral mintues to complete.
     
 .NOTES
    
