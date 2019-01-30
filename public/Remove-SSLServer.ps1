@@ -2,20 +2,16 @@
 <#
 .SYNOPSIS
 
-.PARAMETER name
+    Removes an existing server ssl profile.
 
-.PARAMETER dstSubnet
-
-.PARAMETER aclOrder
-
+.PARAMETER profileName
 
 .EXAMPLE
 
-.EXAMPLE
+    Remove-SSLServer -profileName some_server
 
-
-	
-.EXAMPLE
+    Would remove some_server from the F5 server profiles
+    
    .NOTES
    
     Requires F5-LTM modules from github

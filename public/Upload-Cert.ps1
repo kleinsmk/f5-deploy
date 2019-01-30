@@ -1,13 +1,14 @@
 ﻿Function Upload-Cert {
 <#
 .SYNOPSIS
+
  Uploads a cert file to the F5 Load Balancer and installs certificate too.  F5 appends .crt to filename.
  
 .PARAMETER filepath
- Location of the cert file locally in full path format like: C:\certificates\test.cert
+ Location of the cert file locally in full path format like: C:\certificates\test.cert.crt
 
 .EXAMPLE
- Upload-Cert -filepath "C:\certificates\test.cert"
+ Upload-Cert -filepath "C:\certificates\test.domain.com.crt"
  
 .OUTPUTS
  

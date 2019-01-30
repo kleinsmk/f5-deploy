@@ -13,7 +13,7 @@ AWS Security Information:
 
 .PARAMETER crnumber
 
-CR Number from Jira in the format "4340"
+CR Number from Jira in the format "CR-4340"
 
 .PARAMETER f5creds
 
@@ -37,7 +37,7 @@ Switch paramter for dev or prod.  Defaults to prod if omitted.
 
 .EXAMPLE
 
-New-AwsSecurityStack -crNumber "CR-4509" -f5creds $saved_credentials -
+New-AwsSecurityStack -crNumber "CR-4509" -f5creds $saved_credentials -jiracreds $save_jiracreds
 .Notes
 
   It is required that the jirasever have been set using JiraPS module Set-JiraConfigServer -Server 'https://my.jira.server.com:8080'

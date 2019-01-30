@@ -2,13 +2,38 @@
 <#
 .SYNOPSIS
 
-Removes a new AWS VCD stack on the f5 load balancer from a specified Jira Ticket.
-Scrapes the parameters from tickets that look like
+Removes core services F5 vpn config from a specified Jira Ticket.
+May be used in conjuntion with Find-VCD to determine if LTM config is required to be removed.
 
 .PARAMETER crnumber
 
-CR Number from Jira in the format "4340"
+CR Number from Jira in the format "CR-4340"
 
+.PARAMETER f5creds
+
+Powershell crednetial object containing F5 login credentials
+
+.PARAMETER jiracreds
+
+Powershell crednetial object containing F5 login credentials
+
+.PARAMETER onpremf5ip
+
+IP or DNS of onpremise F5 device.  Defaults to onpremf5.boozallencsn.com and generally can be omitted.
+
+.PARAMETER awsf5ip
+
+IP or DNS of AWS F5 device in VCD.  Defaults to ec2f5.boozallencsn.com and generally can be omitted.
+
+.PARAMETER role
+
+Switch paramter for dev or prod.  Defaults to prod if omitted.
+
+.EXAMPLE
+
+Remove-AwsSecurityStack -crNumber "CR-4509" -f5creds $saved_credentials -jiracreds $saved_jiracreds
+
+.Notes
 
 .EXAMPLE
 
@@ -19,7 +44,6 @@ CR Number from Jira in the format "4340"
   [CmdletBinding()]
   param(
 
-    [Alias("existing acl Name")]
     [ValidatePattern("[a-zA-Z]{2}-[0-9]*")]
     [Parameter(Mandatory = $true)]
     [string]$crnumber = '',
