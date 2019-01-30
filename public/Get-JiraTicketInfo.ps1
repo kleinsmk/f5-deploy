@@ -1,9 +1,16 @@
 ﻿Function Get-JiraTicketInfo {
 <#
 .SYNOPSIS
-    Scrapes and returns powershell object with AWS Group, and Subnet info.
+    Scrapes jira ticket description and returns powershell object with cr number, AWS Group, and Subnet info.
+    This cmdlet can only handle a single AWS group and a single user prive subnet in a ticket description.
+.PARAMETER crName
+    CR to scrape in the CR-#### format
+.EXAMPLE
+    Get-JiraTicketInfo -crNumber CR-0925
+
+    Returns CR number, AWS group to be created, and User private subnet for accounts like AWS_293853093962 or Azure MAZ_8ccd4180-a8b6-413e-870f-b50af1e0647b
 .NOTES
-   
+    
     Requires Posh-Jira Module from github
 #>
     [cmdletBinding()]

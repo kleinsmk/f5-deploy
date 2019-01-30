@@ -2,15 +2,12 @@
 .NAME
     Find-VCD
 .SYNOPSIS
-    Finds VCD setups that match a given aws ID.
+    Finds VCD setups that match a given aws ID that exists in the description field of all the pools.
 .PARAMETER awsId
-    AWs id in format AWS_0898098098
-    
+    AWs id in format AWS_0898098098    
 .EXAMPLE
-
-Find-VCD -awsId AWS_0898098098
-.NOTES
-   
+    Find-VCD -awsId AWS_0898098098
+.NOTES 
     Requires F5-LTM modules from github
 #>
 function Find-VCD

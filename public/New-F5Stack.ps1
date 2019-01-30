@@ -3,7 +3,73 @@
 function New-F5Stack {
 <#
 .SYNOPSIS
-    Adds a new VCD stack to F5
+   Automates the deployment of a new project for inbound access on a given domain name.
+.Description
+    Creates a new node, new pool, new listening virtual server, client ssl profile, server ssl profile,
+    switching irule, and ASM policy for given parameters.  Applies the irule to the appropriate proxy VS.
+    ======Does not currently apply SSLcleint profiles to main proxy routing VS and this must be done manually.======
+.PARAMETER dns
+
+    The dns name which we would like to open via the reverse proxy.
+
+.PARAMETER nodeIP
+
+    The ip of the intenral node and or AWS instance in the VCD.  Pass either IP or FQDN not both.
+
+.PARAMETER nodeFQDN
+
+    The FQDN of the intenral node and or AWS instance in the VCD.  Pass either IP or FQDN not both.
+
+.PARAMETER nodePort
+
+    The internal port the node is listening on.
+
+.PARAMETER vsPort
+
+    The port the virutal server will be listening on
+
+.PARAMETER vsIP
+
+    The IP the virutal server will be configured to use.
+
+.PARAMETER sslClientProfile
+
+    The name of the client profile you wish to create.  May be omitted.
+    Can specify the default clientssl profile as well.
+
+.PARAMETER sslServerProfile
+
+    The name of the client profile you wish to create.  May be omitted.
+    Gernally the serverssl profile should simply be provided as this keep config to a minimum
+
+ .PARAMETER  certname
+
+    Name of certificate to be attched to profile.  In format something.com.crt
+
+ .PARAMETER  keyname
+
+    Name of key to be attched to profile.  In format something.com.key
+
+.PARAMETER asmPolicyName
+
+    Used to specify and existing ASM policy to use as when doing multiple builds with the same policy.
+    Should otherwise be left blank.
+
+.PARAMETER desc
+
+    Description for each LTM object to be tagged into the description field. Should be the AWS_ID generally.
+
+.PARAMETER buildtype
+
+    Switch to set the type of build required. HTTP or HTTPS are valid options.
+
+.Example 
+
+New-F5Stack -dns funtimes.boozallencsn.com -nodeIP 10.194.55.109 -nodePort 80 -vsPort 443 -vsIP 1.1.1.256 -sslClientProfile funtimes.boozallencsn.com -desc AWS_309304096838 -certname funtimes.boozallencsn.com.crt -keyname funtimes.boozallencsn.com.key -buildtype HTTPS
+
+Create new node 10.194.55.109:80, new virtual server named funtimes.boozallencsn.com listening at 443, new pool pointed to new node, new ssl client profile, new irule, and new asm profile
+
+
 .NOTES
     Requires F5-LTM modules from github
     
@@ -106,7 +172,7 @@ function New-F5Stack {
 
     #New SSL Profiles
     try{
-        
+        #skip if HTTP only build
         if($buildtype -eq "HTTPS"){
 
             #Powershell makes this soo eloquent! Check if Both profiles arguments are NOT empty or Null.  This way we don't run profile calls if it's not required
@@ -173,20 +239,21 @@ function New-F5Stack {
         #if nodeip is not empty
         if( !([string]::IsNullOrEmpty($nodeIP)) ) {
             #Check for existing node
-            $node = Get-Node -Address $nodeIP            
+            $node = Get-Node -Address $nodeIP
+            #if node does not exist            
             if([string]::IsNullOrEmpty($node)){
               Write-Host "Creating new node......"
               New-Node -Name "$nodeName" -Address "$nodeIP" -Description $desc -ErrorAction Stop | Out-Null
               Write-Host "Successfully created New Node $nodeName with IP $nodeIP"
             }
-
+            #otherwise use the existing node
             else{
              
                  $nodeName = $node.name 
                  Write-Host "Using Existing Node $nodeName"
             }
         }
-
+        #Use FQDN instead of IP
         else {
 
             Write-Host "Creating new node......"

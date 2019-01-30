@@ -2,17 +2,47 @@
 <#
 .SYNOPSIS
 
-Creates a new AWS VCD stack on the f5 load balancer from specified subnet and aws ID.
+Creates a new project VPN config for a specified subnet and group.
 
-.PARAMETER crnumber
+This cmdlet is used when a new environment needs vpn configuration setup but there isn't a properly formed ticket to scrape from.
+Example use cases would be new on-prem projects etc.
 
-CR Number from Jira in the format "4340"
+.PARAMETER awsID
 
+The AD group that wil be used for both the ACL name and the the LDAP mapping.  Generally this is an AWS Account but could also be something like BLUE_DNS
+
+.PARAMETER subnet
+
+The subnet you wish to use to create the default ACL with
+
+.PARAMETER f5creds
+
+Powershell crednetial object containing F5 login credentials.  Can be omitted or passed to save time.
+
+.PARAMETER jiracreds
+
+Powershell crednetial object containing F5 login credentials.  Can be omitted or passed to save time.
+
+.PARAMETER onpremf5ip
+
+IP or DNS of onpremise F5 device.  Defaults to onpremf5.boozallencsn.com and generally can be omitted.
+
+.PARAMETER awsf5ip
+
+IP or DNS of AWS F5 device in VCD.  Defaults to ec2f5.boozallencsn.com and generally can be omitted.
+
+.PARAMETER role
+
+Switch paramter for dev or prod.  Defaults to prod if omitted.
 
 .EXAMPLE
 
+New-AWSSubnet -awsID AWS_0989809809808 -subnet 10.22.33.0/24
 
+Creates a new allow ACL for the default port range to 10.22.33.0/24 and maps AD group AWS_0989809809808 to this ACL
+.Notes
 
+  It is required that the jirasever have been set using JiraPS module Set-JiraConfigServer -Server 'https://my.jira.server.com:8080'
 
 #>
   [CmdletBinding()]
@@ -77,7 +107,7 @@ CR Number from Jira in the format "4340"
     try {
       Write-Output "Mapping ACl to VPN access role......"
       Add-APMRole -Name $vpnrole -acl $awsId -group $awsId -ErrorAction stop | Write-Verbose
-      Write-Output "Mapped ACL $($awsId) to group  $($subnet)."
+      Write-Output "Mapped ACL $($awsId) to group  $($awsId)."
     }
 
     catch {

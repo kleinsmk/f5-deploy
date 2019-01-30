@@ -2,20 +2,16 @@
 <#
 .SYNOPSIS
 
-.PARAMETER name
+    Removes an existing client ssl profile.
 
-.PARAMETER dstSubnet
-
-.PARAMETER aclOrder
-
+.PARAMETER profileName
 
 .EXAMPLE
 
-.EXAMPLE
+    Remove-SSLClient -profileName some_client
 
-
-	
-.EXAMPLE
+    Would remove some_client from the F5 client profiles
+    
    .NOTES
    
     Requires F5-LTM modules from github

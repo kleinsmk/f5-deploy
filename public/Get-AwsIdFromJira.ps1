@@ -1,7 +1,13 @@
 ﻿Function Get-AwsIdFromJira {
 <#
 .SYNOPSIS
-    Scrapes and returns powershell object with AWS Group, and Subnet info.
+    Scrapes jira ticket description for AWS_########### and returns powershell object.
+.Parameter crNumber
+    Existing jira CR Ticket in format CR-####
+.Example
+    Get-AwsIdFromJira -crNumber CR-0925
+
+    Returns AWS_ID from descriptoin field if it exists.
 .NOTES
    
     Requires Posh-Jira Module from github

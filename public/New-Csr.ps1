@@ -1,19 +1,16 @@
 ﻿Function New-Csr {
 <#
-.SYNOPSIS
+.Description
 
-.PARAMETER name
+Generate New CSR for a given commonName.  Geneartes private keypair on the connected F5 and then creates a CSR.
 
-.PARAMETER dstSubnet
+.PARAMETER commonName
 
-.PARAMETER aclOrder
-
-
-.EXAMPLE
+The common name which you want to genearte a CSR request for.
 
 .EXAMPLE
 
-
+New-Csr -commonName something.boozallencsn.com
 	
 .EXAMPLE
    .NOTES
