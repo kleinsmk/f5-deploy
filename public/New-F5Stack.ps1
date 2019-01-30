@@ -3,7 +3,37 @@
 function New-F5Stack {
 <#
 .SYNOPSIS
-    Adds a new VCD stack to F5
+   Automates the deployment of a new project for inbound access on a given domain name.
+.Description
+    Creates a new node, new pool, new listening virtual server, client ssl profile, server ssl profile,
+    switching irule, and ASM policy for given parameters.
+.PARAMETER dns
+
+    The dns name which we would like to open via the reverse proxy.
+
+.PARAMETER nodeIP
+
+    The ip of the intenral node and or AWS instance in the VCD.  Pass either IP or FQDN not both.
+
+.PARAMETER nodeFQDN
+
+    The FQDN of the intenral node and or AWS instance in the VCD.  Pass either IP or FQDN not both.
+
+.PARAMETER nodePort
+
+    The internal port the node is listening on.
+
+.PARAMETER vsPort
+
+    The port the virutal server will be listening on
+
+.PARAMETER vsIP
+
+    The IP the virutal server will be configured to use.
+
+.PARAMETER sslClientProfile
+
+    The name of the client profile you wish t
 .NOTES
     Requires F5-LTM modules from github
     
@@ -106,7 +136,7 @@ function New-F5Stack {
 
     #New SSL Profiles
     try{
-        
+        #skip if HTTP only build
         if($buildtype -eq "HTTPS"){
 
             #Powershell makes this soo eloquent! Check if Both profiles arguments are NOT empty or Null.  This way we don't run profile calls if it's not required
@@ -173,20 +203,21 @@ function New-F5Stack {
         #if nodeip is not empty
         if( !([string]::IsNullOrEmpty($nodeIP)) ) {
             #Check for existing node
-            $node = Get-Node -Address $nodeIP            
+            $node = Get-Node -Address $nodeIP
+            #if node does not exist            
             if([string]::IsNullOrEmpty($node)){
               Write-Host "Creating new node......"
               New-Node -Name "$nodeName" -Address "$nodeIP" -Description $desc -ErrorAction Stop | Out-Null
               Write-Host "Successfully created New Node $nodeName with IP $nodeIP"
             }
-
+            #otherwise use the existing node
             else{
              
                  $nodeName = $node.name 
                  Write-Host "Using Existing Node $nodeName"
             }
         }
-
+        #Use FQDN instead of IP
         else {
 
             Write-Host "Creating new node......"
