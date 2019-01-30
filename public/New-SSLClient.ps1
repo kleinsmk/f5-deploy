@@ -38,7 +38,7 @@
     begin {
         #Test that the F5 session is in a valid format
         Test-F5Session($F5Session)
-        if( $F5Session.WebSession.Headers.'Token-Expiration' -lt (date) ){
+        if( [System.DateTime]($F5Session.WebSession.Headers.'Token-Expiration') -lt (Get-date) ){
             Write-Warning "F5 Session Token is Expired.  Please re-connect to the F5 device."
             break
 
