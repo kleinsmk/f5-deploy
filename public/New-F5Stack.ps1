@@ -6,7 +6,8 @@ function New-F5Stack {
    Automates the deployment of a new project for inbound access on a given domain name.
 .Description
     Creates a new node, new pool, new listening virtual server, client ssl profile, server ssl profile,
-    switching irule, and ASM policy for given parameters.
+    switching irule, and ASM policy for given parameters.  Applies the irule to the appropriate proxy VS.
+    ======Does not currently apply SSLcleint profiles to main proxy routing VS and this must be done manually.======
 .PARAMETER dns
 
     The dns name which we would like to open via the reverse proxy.
@@ -33,7 +34,42 @@ function New-F5Stack {
 
 .PARAMETER sslClientProfile
 
-    The name of the client profile you wish t
+    The name of the client profile you wish to create.  May be omitted.
+    Can specify the default clientssl profile as well.
+
+.PARAMETER sslServerProfile
+
+    The name of the client profile you wish to create.  May be omitted.
+    Gernally the serverssl profile should simply be provided as this keep config to a minimum
+
+ .PARAMETER  certname
+
+    Name of certificate to be attched to profile.  In format something.com.crt
+
+ .PARAMETER  keyname
+
+    Name of key to be attched to profile.  In format something.com.key
+
+.PARAMETER asmPolicyName
+
+    Used to specify and existing ASM policy to use as when doing multiple builds with the same policy.
+    Should otherwise be left blank.
+
+.PARAMETER desc
+
+    Description for each LTM object to be tagged into the description field. Should be the AWS_ID generally.
+
+.PARAMETER buildtype
+
+    Switch to set the type of build required. HTTP or HTTPS are valid options.
+
+.Example 
+
+New-F5Stack -dns funtimes.boozallencsn.com -nodeIP 10.194.55.109 -nodePort 80 -vsPort 443 -vsIP 1.1.1.256 -sslClientProfile funtimes.boozallencsn.com -desc AWS_309304096838 -certname funtimes.boozallencsn.com.crt -keyname funtimes.boozallencsn.com.key -buildtype HTTPS
+
+Create new node 10.194.55.109:80, new virtual server named funtimes.boozallencsn.com listening at 443, new pool pointed to new node, new ssl client profile, new irule, and new asm profile
+
+
 .NOTES
     Requires F5-LTM modules from github
     

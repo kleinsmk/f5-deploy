@@ -37,6 +37,7 @@ Switch paramter for dev or prod.  Defaults to prod if omitted.
 
 .EXAMPLE
 
+New-AwsSecurityStack -crNumber "CR-4509" -f5creds $saved_credentials -
 .Notes
 
   It is required that the jirasever have been set using JiraPS module Set-JiraConfigServer -Server 'https://my.jira.server.com:8080'
