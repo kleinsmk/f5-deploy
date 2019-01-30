@@ -42,11 +42,11 @@
 
             $uri = $F5Session.BaseURL.Replace('/ltm/',"/ltm/profile/server-ssl/~Common~${profilename}")
             
-            try{ 
+           
             $response = Invoke-RestMethodOverride -Method GET -Uri $URI -WebSession $F5Session.WebSession
             $response
-            }
-            catch{}
+            
+
         }
         
 }
