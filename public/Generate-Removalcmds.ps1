@@ -14,6 +14,8 @@ Remove-iRuleFromVirtualServer -Name '$wsa' -iRuleName '${vsname}'
 Remove-iRule -Name '${vsname}' -Confirm:`$false
 Remove-VirtualServer -Name ${vsName} -Confirm:`$false
 Remove-Pool -PoolName ${vsName} -Confirm:`$false
+Remove-Node -Name ${nodeName} -Confirm:`$false
+Remove-Asm -policyname ${asmPolicyName} -Confirm:`$false
 "@
 
 if ( -not [string]::IsNullOrEmpty($sslClientProfile) ){
