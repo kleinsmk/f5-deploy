@@ -1,6 +1,4 @@
-﻿
-
-function New-F5Stack {
+﻿function New-F5Stack {
 <#
 .SYNOPSIS
    Automates the deployment of a new project for inbound access on a given domain name.
@@ -349,7 +347,7 @@ Create new node 10.194.55.109:80, new virtual server named funtimes.boozallencsn
                 #Build only client
                  Write-Output "Adding new Virtual Server with client profile $sslClientProfile....."
                  New-VirtualServer -Name "$vsName" -DestinationPort "$vsPort" -DestinationIP "$vsIP" -SourceAddressTranslationType automap `
-                -ipProtocol tcp -DefaultPool $vsName -ProfileNames @("http-X-Forwarder","$sslClientProfile") -Description $desc -ErrorAction Stop | Out-Null
+                -ipProtocol tcp -DefaultPool $vsName -ProfileNames @("rewrite_http_redirect_SSL","$sslClientProfile") -Description $desc -ErrorAction Stop | Out-Null
                 Write-Output "Successfully Added New Virtual Server $vsName ${vsIP}:${vsPort} " 
             }
             Elseif( !([string]::IsNullOrEmpty($SSLServerProfile)) ){
@@ -412,6 +410,42 @@ Create new node 10.194.55.109:80, new virtual server named funtimes.boozallencsn
       Write-Warning $_.Exception.Message
       Rollback-VCD -rollBack_Element @('irule','virtual','pool','node','serverssl','clientssl')
       break
+    }
+
+    #add ssl profiles to wsa VS
+    try 
+    {
+        #both
+        if( $clientProfileCreated -and $serverProfileCreated ) {
+            Write-Output "Adding SSL profiles to $wsa....."
+            Add-VsProfile -virtual $wsa -profile $sslClientProfile, $SSLServerProfile
+            Write-Output "Successfully applied $sslClientProfile and $SSLServerProfile to $wsa"
+        }
+
+        #only server
+        elseif( $serverProfileCreated ) {
+            
+            Write-Output "Adding SSL profiles to $wsa....."
+            Add-VsProfile -virtual $wsa -profile $SSLServerProfile
+            Write-Output "Successfully applied $SSLServerProfile to $wsa"
+        }
+
+        #only client
+        elseif ( $clientProfileCreated ){
+
+            Write-Output "Adding SSL profiles to $wsa....."
+            Add-VsProfile -virtual $wsa -profile $sslClientProfile
+            Write-Output "Successfully applied $sslClientProfile to $wsa"
+
+        }
+
+    }
+
+    #add ssl profiles to wsa VS
+    catch
+    {
+         Write-Warning "Error while applying SSL profiles.  Please apply manually."
+         Write-Warning $_.Exception.Message
     }
 
      #New ASM
