@@ -19,10 +19,12 @@ Remove-Asm -policyname ${asmPolicyName} -Confirm:`$false
 "@
 
 if ( -not [string]::IsNullOrEmpty($sslClientProfile) ){
+"Remove-VsProfile -virtual ${wsa} -profile ${sslClientProfile}"
 "Remove-SSLClient -profileName $sslClientProfile"
 }
 
 if ( -not [string]::IsNullOrEmpty($SSLServerProfile) -and ($SSLServerProfile -ne "serverssl") ){
+"Remove-VsProfile -virtual ${wsa} -profile ${SSLServerProfile}"
 "Remove-SSLServer -profileName $SSLServerProfile"
 }
 

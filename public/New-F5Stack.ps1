@@ -1,4 +1,4 @@
-﻿function New-F5Stack {
+﻿function New-F5Stack-Test {
 <#
 .SYNOPSIS
    Automates the deployment of a new project for inbound access on a given domain name.
@@ -418,7 +418,7 @@ Create new node 10.194.55.109:80, new virtual server named funtimes.boozallencsn
         #both
         if( $clientProfileCreated -and $serverProfileCreated ) {
             Write-Output "Adding SSL profiles to $wsa....."
-            Add-VsProfile -virtual $wsa -profile $sslClientProfile, $SSLServerProfile
+            Add-VsProfile -virtual $wsa -profile $sslClientProfile, $SSLServerProfile -ErrorAction Stop
             Write-Output "Successfully applied $sslClientProfile and $SSLServerProfile to $wsa"
         }
 
@@ -426,7 +426,7 @@ Create new node 10.194.55.109:80, new virtual server named funtimes.boozallencsn
         elseif( $serverProfileCreated ) {
             
             Write-Output "Adding SSL profiles to $wsa....."
-            Add-VsProfile -virtual $wsa -profile $SSLServerProfile
+            Add-VsProfile -virtual $wsa -profile $SSLServerProfile -ErrorAction Stop
             Write-Output "Successfully applied $SSLServerProfile to $wsa"
         }
 
@@ -434,7 +434,7 @@ Create new node 10.194.55.109:80, new virtual server named funtimes.boozallencsn
         elseif ( $clientProfileCreated ){
 
             Write-Output "Adding SSL profiles to $wsa....."
-            Add-VsProfile -virtual $wsa -profile $sslClientProfile
+            Add-VsProfile -virtual $wsa -profile $sslClientProfile -ErrorAction Stop
             Write-Output "Successfully applied $sslClientProfile to $wsa"
 
         }
