@@ -349,7 +349,7 @@ Create new node 10.194.55.109:80, new virtual server named funtimes.boozallencsn
                 #Build only client
                  Write-Output "Adding new Virtual Server with client profile $sslClientProfile....."
                  New-VirtualServer -Name "$vsName" -DestinationPort "$vsPort" -DestinationIP "$vsIP" -SourceAddressTranslationType automap `
-                -ipProtocol tcp -DefaultPool $vsName -ProfileNames @("http-X-Forwarder","$sslClientProfile") -Description $desc -ErrorAction Stop | Out-Null
+                -ipProtocol tcp -DefaultPool $vsName -ProfileNames @("rewrite_http_redirect_SSL","$sslClientProfile") -Description $desc -ErrorAction Stop | Out-Null
                 Write-Output "Successfully Added New Virtual Server $vsName ${vsIP}:${vsPort} " 
             }
             Elseif( !([string]::IsNullOrEmpty($SSLServerProfile)) ){
