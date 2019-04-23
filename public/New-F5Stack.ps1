@@ -199,12 +199,14 @@ Create new node 10.194.55.109:80, new virtual server named funtimes.boozallencsn
                 #Build only client
 
                 #check for existing profile
-                If( (!([string]::IsNullOrEmpty( (Get-SSLClient $sslClientProfile) )))){
+                try {
+                    if(Get-SSLClient $sslClientProfile -ErrorAction Continue){
                     Write-Output "Using existing Client profile $sslClientProfile....."
                     $clientProfileCreated = $true
+                    }
                 }
 
-                Else{               
+                catch{               
 
                 Write-Output "Creating new Client profile....."
                 New-SSLClient -profileName $sslClientProfile -cert $certname -key $keyname | Out-Null
