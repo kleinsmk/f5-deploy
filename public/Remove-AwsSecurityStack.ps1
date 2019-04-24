@@ -129,7 +129,7 @@ Remove-AwsSecurityStack -crNumber "CR-4509" -f5creds $saved_credentials -jiracre
     }
     catch {
       Write-Warning "Removing APM Role mapping failed."
-      $_.ErrorDetails.Message
+      throw $_.ErrorDetails.Message
       break
     }
 
@@ -141,7 +141,7 @@ Remove-AwsSecurityStack -crNumber "CR-4509" -f5creds $saved_credentials -jiracre
 
     catch {
       Write-Warning "Removing ACL failed."
-      $_.Exception.ErrorDetails
+      throw $_.Exception.ErrorDetails
       break
     }
 
@@ -154,7 +154,7 @@ Remove-AwsSecurityStack -crNumber "CR-4509" -f5creds $saved_credentials -jiracre
 
     catch{
       Write-Warning "Updating APM Policy failed."
-      $_.Exception.Message
+      throw $_.Exception.Message
       break
     }
 
@@ -165,7 +165,7 @@ Remove-AwsSecurityStack -crNumber "CR-4509" -f5creds $saved_credentials -jiracre
     }
     catch{
       Write-Warning "Syncing Device to Group failed."
-      $_.Exception.Message
+      throw $_.Exception.Message
       break
     }
   #============================================================================================================
@@ -181,7 +181,7 @@ Remove-AwsSecurityStack -crNumber "CR-4509" -f5creds $saved_credentials -jiracre
   catch {
 
           Write-Warning "F5 was unable to connect please check your username, password, and network connection."
-          $_.Exception.Message
+          throw $_.Exception.Message
           break
 
         }
@@ -193,7 +193,7 @@ Remove-AwsSecurityStack -crNumber "CR-4509" -f5creds $saved_credentials -jiracre
     }
     catch {
       Write-Warning "Removing APM Role mapping failed."
-      $_.ErrorDetails.Message
+      throw $_.ErrorDetails.Message
       break
     }
 
@@ -205,7 +205,7 @@ Remove-AwsSecurityStack -crNumber "CR-4509" -f5creds $saved_credentials -jiracre
 
     catch {
       Write-Warning "Removing ACL failed."
-      $_.ErrorDetails
+      throw $_.ErrorDetails
       break
     }
 
@@ -219,7 +219,7 @@ Remove-AwsSecurityStack -crNumber "CR-4509" -f5creds $saved_credentials -jiracre
 
     catch{
       Write-Warning "Updating APM Policy failed."
-      $_.Exception.Message
+      throw $_.Exception.Message
       break
     }
 
@@ -232,7 +232,7 @@ Remove-AwsSecurityStack -crNumber "CR-4509" -f5creds $saved_credentials -jiracre
 
     catch{
       Write-Warning "Updating Jira comments failed."
-      $_.Exception.Message
+      throw $_.Exception.Message
       break
     }
 
@@ -245,7 +245,7 @@ Remove-AwsSecurityStack -crNumber "CR-4509" -f5creds $saved_credentials -jiracre
 
     catch{
       Write-Warning "Updating Jira comments failed."
-      $_.Exception.Message
+      throw $_.Exception.Message
       break
     }
 
