@@ -12,6 +12,6 @@ Task FunctionsToExport {
     }
     Write-Verbose "Using functions $functionNames"
 
-    Update-ModuleManifest -Path ".\$($moduleName).psd1" -FunctionsToExport $functionNames
+    Update-ModuleManifest -Path "$($moduleName).psd1" -FunctionsToExport $functionNames
     Import-Module .\$moduleName -Force -Verbose:$false
 }
