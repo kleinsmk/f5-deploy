@@ -122,7 +122,7 @@ New-AwsSecurityStack -crNumber "CR-4509" -f5creds $saved_credentials -jiracreds 
         catch {
 
           Write-Warning "F5 was unable to connect please check your username, password, and network connection."
-          $_.Exception.Message
+          throw $_.Exception.Message
           break
 
         }
@@ -202,7 +202,7 @@ New-AwsSecurityStack -crNumber "CR-4509" -f5creds $saved_credentials -jiracreds 
     }
     catch {
       Write-Warning "Adding ACL failed."
-      $_.ErrorDetails.Message
+      throw $_.ErrorDetails.Message
       break
     }
 
@@ -230,7 +230,7 @@ New-AwsSecurityStack -crNumber "CR-4509" -f5creds $saved_credentials -jiracreds 
 
     catch{
       Write-Warning "Updating APM Policy failed."
-      $_.Exception.Message
+      throw $_.Exception.Message
       break
     }
 
@@ -245,7 +245,7 @@ New-AwsSecurityStack -crNumber "CR-4509" -f5creds $saved_credentials -jiracreds 
 
     catch{
       Write-Warning "Updating Jira comments failed."
-      $_.Exception.Message
+      throw $_.Exception.Message
       break
     }
 
@@ -258,7 +258,7 @@ New-AwsSecurityStack -crNumber "CR-4509" -f5creds $saved_credentials -jiracreds 
 
     catch{
       Write-Warning "Updating Jira comments failed."
-      $_.Exception.Message
+      throw $_.Exception.Message
       break
     }
 
