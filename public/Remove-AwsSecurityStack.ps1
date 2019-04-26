@@ -117,7 +117,7 @@ Remove-AwsSecurityStack -crNumber "CR-4509" -f5creds $saved_credentials -jiracre
         catch {
 
           Write-Warning "F5 was unable to connect please check your username, password, and network connection."
-          $_.Exception.Message
+          throw $_.Exception.Message
           break
 
         }
