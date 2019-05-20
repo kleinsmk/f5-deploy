@@ -46,7 +46,7 @@
                 $desc = $issue.Description -split "`n"
 
                 #grab the id
-                $awsID = $desc | Select-String -Pattern "\w+-\w+-\w+-\w+\w-\w+|[0-9]{12}" | select matches
+                $awsID = $desc | Select-String -Pattern "\w+-\w+-\w+-\w+-\w+|[0-9]{12}" | select matches
 
                 #save the id as string only
                 $awsID = $awsID.Matches[0].Value
@@ -57,7 +57,7 @@
                         'AWS_'+$awsId
                         
                     }
-                elseif($awsID -match '\w+-\w+-\w+-\w+\w-\w+'){
+                elseif($awsID -match '\w+-\w+-\w+-\w+-\w+'){
                     
                         'MAZ_'+$awsId
                 }
