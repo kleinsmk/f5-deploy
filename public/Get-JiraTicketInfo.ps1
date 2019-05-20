@@ -50,7 +50,7 @@
                 $subnet = ($desc | Select-String -Pattern "User Private Subnet") -split ":"
 
                 #grab the aws account
-                $awsGroup = ($desc | Select-String -Pattern " Create a CSN AD security group named") -split ":"
+                $awsGroup = ($desc | Select-String -Pattern "Create a CSN AD security group named") -split ":"
 
                 $awsGroup = $awsGroup.Trimstart()
                 $subnet = $subnet.TrimStart()
