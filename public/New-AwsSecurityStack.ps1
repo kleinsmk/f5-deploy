@@ -239,7 +239,7 @@ New-AwsSecurityStack -crNumber "CR-4509" -f5creds $saved_credentials -jiracreds 
     try{
       
       #Close out Comments 
-      Add-JiraIssueComment -Comment "Core Services VPN Config Complete" -Issue $crnumber -VisibleRole 'All Users' | Out-Null
+      Add-JiraIssueComment -Comment "Core Services VPN Config Complete" -Issue $crnumber -VisibleRole 'All Users' -ErrorAction Stop | Out-Null
       Write-Output "[Added Closing Comment]......"
     }
 
@@ -251,7 +251,7 @@ New-AwsSecurityStack -crNumber "CR-4509" -f5creds $saved_credentials -jiracreds 
 
     try{
          #Close Out Ticket
-      Get-JiraIssue -Key $crnumber | Invoke-JiraIssueTransition -Transition 81 | Out-Null
+      Get-JiraIssue -Key $crnumber | Invoke-JiraIssueTransition -Transition 81 -ErrorAction Stop | Out-Null 
       Write-Output "Ticket Closed......"
       Write-Output "New Build Complete!"
     }
