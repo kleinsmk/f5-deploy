@@ -1,4 +1,4 @@
-﻿﻿Function Get-PortInfoFromJira {
+﻿function Get-PortInfoFromJira {
 <#
 .SYNOPSIS
     Scrapes jira ticket description for acl related varibles.
@@ -22,6 +22,8 @@
         [string]$crNumber=''
 
     )
+
+    begin {}
 
     process {
        
