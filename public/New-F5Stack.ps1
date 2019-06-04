@@ -487,7 +487,7 @@ Create new node 10.194.55.109:80, new virtual server named funtimes.boozallencsn
     {
 
             Write-Output "Applying policy to virtual server $vsName.....(this may take a moment)"
-            Add-ASMtoVirutal -serverName $vsName -policyName $asmPolicyName | Out-Null
+            Add-VirtualToPolicy -serverName $vsName -policyName $asmPolicyName | Out-Null
             Write-Output "ASM policy successfully applied to virtual server $vsName."
 
     }
