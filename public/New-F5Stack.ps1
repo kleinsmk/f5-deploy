@@ -127,13 +127,16 @@ Create new node 10.194.55.109:80, new virtual server named funtimes.boozallencsn
 
     [ValidateSet('HTTP','HTTPS')]
     [Parameter(Mandatory = $true)]
-    [string]$buildtype = ''
+    [string]$buildtype = '',
 
     #Commenting out to add hardcoded options probably a bad idea
     #[ValidateSet('AWS_WSA_vs','AWS_WSA_redirect_vs')]
     #[Parameter(Mandatory = $true)]
     #[string]$wsa = ''
 
+    [ValidateSet('AWS','Azure')]
+    [Parameter(Mandatory = $false)]
+    [string]$environment = 'AWS'
 
   )
 
@@ -148,7 +151,13 @@ Create new node 10.194.55.109:80, new virtual server named funtimes.boozallencsn
             #trim removes incompatiable wild card from valid *.something.com FQDNS
             $vsName = $dns.TrimStart('*.') + "_http"
             $nodeName = $dns.TrimStart('*.')
-            $wsa = 'AWS_WSA_redirect_vs'
+
+            if( $environment -eq "Azure" ) { 
+                $wsa = 'AZURE_WSA_http_vs' 
+            }
+
+            else { $wsa = 'AWS_WSA_redirect_vs' } 
+                      
             $iruleDns = $dns
             break
        }
@@ -157,7 +166,13 @@ Create new node 10.194.55.109:80, new virtual server named funtimes.boozallencsn
             $ssl = $true
             $vsName = $dns.TrimStart('*.') + "_https"
             $nodeName = $dns.TrimStart('*.') 
-            $wsa = 'AWS_WSA_vs'
+
+            if( $environment -eq "Azure" ) { 
+                $wsa = 'AZURE_WSA_https_vs' 
+            }
+
+            else { $wsa = 'AWS_WSA_vs' }
+            
             $iruleDns = $dns
             break
        }
@@ -468,7 +483,7 @@ Create new node 10.194.55.109:80, new virtual server named funtimes.boozallencsn
                 else{
                   Write-Output "Creating New ASM policy....."
                   New-ASMPolicy -policyname $asmPolicyName -Verbose | Out-Null
-                  Write-Output "New ASM Policy $asmPolicyName has been created."
+                  Write-Output "New ASM Policy $asmPolicyName has been created."                
                 }
             }
     }
@@ -482,7 +497,7 @@ Create new node 10.194.55.109:80, new virtual server named funtimes.boozallencsn
     }
 
 
-    #apply asm policy to VS and add log illegal requests
+    #apply asm policy to VS
     try
     {
 
@@ -494,10 +509,28 @@ Create new node 10.194.55.109:80, new virtual server named funtimes.boozallencsn
 
     catch
     {
-        Write-Warning $_.Exception.Message
-        Write-Warning "Failed to create ASM Policy.  Run `"New-ASMPolicy -policyname name`" manually."
-        Generate-Removalcmds
-        break   
+            Write-Warning $_
+            Write-Warning "Failed to Apply ASM Policy.  Run `" Add-VirtualToPolicy`" manually."
+            Generate-Removalcmds
+            break   
+    }
+
+    #Set Log illegal Requests
+    try
+    {
+
+            Write-Output "Setting logging policy on virtual server $vsName....."
+            Add-LogIllegalRequests -serverName $vsName | Out-Null
+            Write-Output "Log illegal requests setting successfully applied to virtual server $vsName."
+
+    }
+
+    catch
+    {
+            Write-Warning $_
+            Write-Warning "Failed to apply logging settings.  Apply them manually."
+            Generate-Removalcmds
+            break   
     }
 
     Write-Output "New F5 VCD Build succeeded!!!!"
