@@ -1,4 +1,4 @@
-Function Get-PortInfoFromJira {
+﻿Function Get-PortInfoFromJira {
 <#
 .SYNOPSIS
     Scrapes jira ticket description for acl related varibles.
@@ -19,7 +19,7 @@ Function Get-PortInfoFromJira {
         [Alias("CR-Number")]
         [ValidatePattern("[a-zA-Z]{2}-[0-9]*")]
         [Parameter(Mandatory=$true)]
-        [string]$crNumber=''
+        [string]$crNumber
 
     )
     begin {
