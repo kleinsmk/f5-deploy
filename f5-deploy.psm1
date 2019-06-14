@@ -16,7 +16,7 @@
 $ScriptPath = Split-Path $MyInvocation.MyCommand.Path
 #region Load Public Functions
 
-    Get-ChildItem "$ScriptPath\Public" -Filter *.ps1 -Recurse| Select-Object -Expand FullName | ForEach-Object {
+    Get-ChildItem "$ScriptPath\public" -Filter *.ps1 -Recurse| Select-Object -Expand FullName | ForEach-Object {
         $Function = Split-Path $_ -Leaf
         try {
             . $_
