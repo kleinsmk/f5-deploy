@@ -82,11 +82,19 @@
                         #same as above but for destination
                         $destination = Get-ParsedData -inputString $desc -pattern "Destination"
 
-                        [PSCustomObject]@{
-                            'source' = $source
-                            'ports' = $ports
-                            'destination' = $destination
-                            }
+                        $output = @()
+
+                        for ($i = 0; $i -lt $source.Count; $i++) {
+                            
+                            $output += [PSCustomObject]@{
+                                'source' = $source[$i]
+                                'ports' = $ports[$i]
+                                'destination' = $destination[$i]
+                                }
+                        }
+                        
+                        $output
+                        
                 }
 
                 catch {
