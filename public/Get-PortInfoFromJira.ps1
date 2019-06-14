@@ -40,6 +40,9 @@
                     #split description into an array of lines that match the input pattern
                     $desc = $desc | Select-String -Pattern $pattern
                     
+                    #remove end of line characters etc
+                    $desc = $desc -replace "`t|`n|`r",""
+
                     #loop through the array an return a custom object of arrays of 
                     foreach ($item in $desc){
 
