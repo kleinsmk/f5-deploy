@@ -25,7 +25,7 @@ Function Add-DataGroupIp {
         [string[]]$address,
 
         [Parameter(Mandatory=$true, ValueFromPipelineByPropertyName)]
-        [string[]]$value
+        [string]$value
 
     )
     begin {
@@ -38,12 +38,10 @@ Function Add-DataGroupIp {
 
         foreach ($ip in $address) {
 
-            foreach ($item in $value){
-
                 $uri = $F5Session.BaseURL.Replace('/ltm/',"/ltm/data-group/internal/$groupName" + "?options=records+add+{$ip{data+`"$item`"}}")
                 Write-Debug "Adding $uri"
                 Invoke-RestMethodOverride -Method PATCH -URI $uri -WebSession $F5Session.WebSession -ContentType 'application/json' -Body $json
-            }
+            
         }
    }
         
