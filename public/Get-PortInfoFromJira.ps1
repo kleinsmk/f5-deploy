@@ -44,7 +44,7 @@
                     $inputString = $inputString -replace "`t|`n|`r",""
 
                     #loop through the array an return a custom object of arrays of 
-                    foreach ($item in $desc){
+                    foreach ($item in $inputString){
 
                         $array += ,@( ($item -split ":" -split ",").trimstart() | Where-Object {$_ -ne $pattern} )
                     } 
