@@ -31,7 +31,7 @@
                 function Get-ParsedData {
 
                     param (
-                        [string]$inputString,
+                        [string[]]$inputString,
                         [string]$pattern
                     )
                     
@@ -39,18 +39,24 @@
 
                     #split description into an array of lines that match the input pattern
                     $inputString = $inputString | Select-String -Pattern $pattern
-                    
                     #remove end of line characters etc
                     $inputString = $inputString -replace "`t|`n|`r",""
 
                     #loop through the array an return a custom object of arrays of 
                     foreach ($item in $inputString){
 
-                        $array += ,@( ($item -split ":" -split ",").trimstart() | Where-Object {$_ -ne $pattern} )
+                       #split input into array of items speperated by commas 
+                       $item = ($item -split ":" -split ",").trimstart()
+
+                       #filter out line label "Ports:"
+                       [array]$item = $item | Where-Object {$_ -ne $pattern}
+                       
+                       #POWERSHELL NEEDS A GODDAMNED COMMA TO ADD SINGLE ITEMS TO AN ARRRAY!
+                       $array += , $item
                     } 
                     
-                    #return object
-                    $array
+                    ##POWERSHELL NEEDS A GODDAMNED COMMA TO RETURN SINGLE ITEMS AS AN ARRRAY!
+                    return , $array
 
 
                 }
@@ -77,13 +83,13 @@
                         $desc = $issue.customfield_10508 -split "`n"
 
                         #grab the 
-                        $source = Get-ParsedData -inputString $desc -pattern "Source"
+                        [array]$source = Get-ParsedData -inputString $desc -pattern "Source"
                         
                         #split by : then by , the return the array of ports skipping first entry
-                        $ports = Get-ParsedData -inputString $desc -pattern "Ports"
+                        [array]$ports = Get-ParsedData -inputString $desc -pattern "Ports"
 
                         #same as above but for destination
-                        $destination = Get-ParsedData -inputString $desc -pattern "Destination"
+                        [array]$destination = Get-ParsedData -inputString $desc -pattern "Destination"
 
                         $output = @()
 
