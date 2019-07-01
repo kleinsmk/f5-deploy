@@ -133,7 +133,8 @@ New-AwsSecurityStack -crNumber "CR-4509" -f5creds $saved_credentials -jiracreds 
     try {
       Write-Output "Adding new ACL......"
       $aclOrder = (Get-NextAclOrder)
-      New-DefaultAcl -Name $newEnv.aws_group -action allow -subnet $newEnv.subnet -aclOrder $aclOrder -ErrorAction Stop | Write-Verbose
+      New-DefaultAcl -Name $newEnv.aws_group -action reject -subnet $rejectSubnet -aclOrder $aclOrder -ErrorAction Stop | Write-Verbose
+      Add-DefaultAclSubnet -name $newEnv.aws_group -dstSubnet $newEnv.subnet
       Write-Output "Added $($newEnv.aws_group) with subnet $($newEnv.subnet)"
     }
     catch {
@@ -200,7 +201,8 @@ New-AwsSecurityStack -crNumber "CR-4509" -f5creds $saved_credentials -jiracreds 
 
   try {
       Write-Output "Adding new ACL to AWS F5......"
-      New-DefaultAcl -Name $newEnv.aws_group -action allow -subnet $newEnv.subnet -aclOrder $aclOrder -ErrorAction Stop | Write-Verbose
+      New-DefaultAcl -Name $newEnv.aws_group -action reject -subnet $rejectSubnet -aclOrder $aclOrder -ErrorAction Stop | Write-Verbose
+      Add-DefaultAclSubnet -name $newEnv.aws_group -dstSubnet $newEnv.subnet
       Write-Output "Added $($newEnv.aws_group) with subnet $($newEnv.subnet)"
     }
     catch {
