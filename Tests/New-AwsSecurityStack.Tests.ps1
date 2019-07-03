@@ -36,7 +36,7 @@ Describe "New-AwsSecurityStack AWS Deployment Integration Test" {
 
         It "Created an APM Role Mapping On-Premise" {
             $test = Get-APMRole -name acl_1_act_full_resource_assign_ag 
-            $test = $test | Where-Object { $_.acls -eq "/Common/$($newEnv.aws_group)" }
+            $test = $test.rules | Where-Object { $_.acls -eq "/Common/$($newEnv.aws_group)" }
             $test | Should not be $null
 
         }
@@ -54,9 +54,21 @@ Describe "New-AwsSecurityStack AWS Deployment Integration Test" {
 
         It "Created an APM Role Mapping On-Premise" {
             $test = Get-APMRole -name acl_1_act_full_resource_assign_ag 
-            $test = $test | Where-Object { $_.acls -eq "/Common/$($newEnv.aws_group)" }
+            $test = $test.rules | Where-Object { $_.acls -eq "/Common/$($newEnv.aws_group)" }
             $test | Should not be $null
 
+        }
+
+        AfterAll {
+
+            #clean up created Acls  Needs to ask someone about Pester how to best handle this.
+            Connect-F5 -ip aws -creds $f5
+            Remove-APMRole -acl $newEnv.aws_group -group $newEnv.aws_group
+            Remove-Acl -name $newEnv.aws_group
+            Connect-F5 -ip op -creds $f5
+            Remove-APMRole -acl $newEnv.aws_group -group $newEnv.aws_group
+            Remove-Acl -name $newEnv.aws_group
+            
         }
         
     }
