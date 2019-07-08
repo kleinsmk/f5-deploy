@@ -23,11 +23,14 @@
 
     process {
 
+        $uri = $F5Session.BaseURL.Replace('/ltm/','/ltm/node?$select=name,fqdn')
+        $nodes = Invoke-RestMethodOverride -Uri $uri -Method Get -WebSession $F5Session.WebSession
+        
 
-        foreach ($name in $csrName) {
+        foreach ($name in $fqdn) {
 
-            $uri = $F5Session.BaseURL.Replace('/ltm/','/util/bash') 
-
+            $result = $nodes.items | Where-Object { $_.name -notlike "*_auto*" -and $_.fqdn.tmName -eq $name  }
+            $result.name
         }
         
     }
