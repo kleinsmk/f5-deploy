@@ -1,8 +1,14 @@
 $sut = (Split-Path -Leaf $MyInvocation.MyCommand.Path) -replace '\.Tests\.', '.'
 . "../public/$sut"
 
-Context "Function Unit Tests" {
-   Describe "New-AsmTaskJson" -Tag Unit {
+Context "Function Unit Tests" -Tag Unit {
+   Describe "New-AsmTaskJson"  {
+
+      #Create a Fake .Replace Method -- Pester Makes this beyond terrible
+      $F5Session = New-MockObject -Type System.Object
+      $F5Session | Add-Member -MemberType NoteProperty  "BaseURL" -Force -Value { "https://mock"}
+      $F5Session.BaseURL | Add-Member -MemberType ScriptMethod "Replace" -Force -Value { "MockString"}
+      
 
 $json =
 @" 

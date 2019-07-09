@@ -2,7 +2,13 @@ $sut = (Split-Path -Leaf $MyInvocation.MyCommand.Path) -replace '\.Tests\.', '.'
 . "../public/$sut"
 
 Context "Function Unit Tests" -Tag "Unit" {
-   Describe "Invoke-AsmTask"  {
+   
+    #Create a Fake .Replace Method -- Pester Makes this beyond terrible
+    $F5Session = New-MockObject -Type System.Object
+    $F5Session | Add-Member -MemberType NoteProperty  "BaseURL" -Force -Value { "https://mock"}
+    $F5Session.BaseURL | Add-Member -MemberType ScriptMethod "Replace" -Force -Value { "MockString"}
+   
+    Describe "Invoke-AsmTask"  {
 
     $json = "{'test':'test'}"
 
@@ -16,6 +22,8 @@ Context "Function Unit Tests" -Tag "Unit" {
          
          $result = Invoke-AsmTask -task $json
          $result | Should -Not -Be $null
+         Assert-MockCalled -CommandName Invoke-RestMethodOverride -Times 1
+         
       }       
    }
 }
