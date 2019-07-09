@@ -2,7 +2,7 @@ $sut = (Split-Path -Leaf $MyInvocation.MyCommand.Path) -replace '\.Tests\.', '.'
 . "../public/$sut"
 
 Context "Function Unit Tests" -Tag "Unit" {
-   Describe "Get-AsmTask"  {
+   Describe "Get-AsmTaskStatus"  {
 
     #Create a Fake .Replace Method -- Pester Makes this beyond terrible
     $F5Session = New-MockObject -Type System.Object
@@ -11,20 +11,24 @@ Context "Function Unit Tests" -Tag "Unit" {
     
     Mock Invoke-RestMethodOverride {
 
-        "Mock Data"
+        $mock = New-MockObject -Type "System.Object"
+        $mock | Add-Member -MemberType NoteProperty -Name "Status" -Value "NEW"
+        $mock
     }
 
       #Mundane API call test to check for a return
       It "Returns an Object" {
          
-         $result = Get-AsmTask -taskId "123456"
+         $result = Get-AsmTaskStatus -taskId "123456"
          $result | Should -Not -Be $null
+         Assert-MockCalled -CommandName Invoke-RestMethodOverride -Times 1
       }       
    }
 }
 
 Context "Function Integration Tests" -Tag "Integration"{
-    Describe "Connecting to F5 for Testing" {
+    Describe "Tests" {
+
         #need to have credentials stored for user in f5 cred manager
         It "Connecitng to F5 for testing" {
             {Connect-F5 -ip ec2f5.boozallencsn.com -creds $f5} | Should Not Throw
@@ -49,14 +53,16 @@ Context "Function Integration Tests" -Tag "Integration"{
             }
 "@
 
-        $task = Invoke-AsmTask -task $json 
-        $task.Status | Should Be "NEW"
+        $script:task = Invoke-AsmTask -task $json 
+        $script:task.Status | Should Be "NEW"
 
         }
 
         It "Returns ASM Task Status of STARTED" {
 
-            Get-AsmTask -taskId $task.id | Should be "STARTED"
+            
+            
+            Get-AsmTaskStatus -taskId $script:task.id | Should be "STARTED"
         }
     }
 
