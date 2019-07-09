@@ -83,11 +83,11 @@ Create new node 10.194.55.109:80, new virtual server named funtimes.boozallencsn
 
     [Alias("Node IP")]
     [Parameter(Mandatory = $false)]
-    [string]$nodeIP = '',
+    [string]$nodeIP,
     
     [Alias("Node FQDN")]
     [Parameter(Mandatory = $false)]
-    [string]$nodeFQDN = '',
+    [string]$nodeFQDN,
 
     [Alias("Node Port ")]
     [Parameter(Mandatory = $true)]
@@ -298,7 +298,7 @@ Create new node 10.194.55.109:80, new virtual server named funtimes.boozallencsn
 
             else {
 
-              $nodeName = $node 
+              $nodeName = $existingNode 
               Write-Host "Using Existing Node $nodeName"
 
 
