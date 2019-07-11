@@ -83,11 +83,11 @@ Create new node 10.194.55.109:80, new virtual server named funtimes.boozallencsn
 
     [Alias("Node IP")]
     [Parameter(Mandatory = $false)]
-    [string]$nodeIP = '',
+    [string]$nodeIP,
     
     [Alias("Node FQDN")]
     [Parameter(Mandatory = $false)]
-    [string]$nodeFQDN = '',
+    [string]$nodeFQDN,
 
     [Alias("Node Port ")]
     [Parameter(Mandatory = $true)]
@@ -285,9 +285,25 @@ Create new node 10.194.55.109:80, new virtual server named funtimes.boozallencsn
         #Use FQDN instead of IP
         else {
 
-            Write-Host "Creating new node......"
-            New-Node -Name "$nodeName" -FQDN $nodeFQDN -AddressType ipv4 -AutoPopulate disabled -Description $desc -ErrorAction Stop| Out-Null
-            Write-Host "Successfully created New Node $nodeName with FQDN $nodeFQDN"
+            $existingNode = Get-NodebyFQDN -fqdn $nodeFQDN
+
+            #if node does not exist            
+            if([string]::IsNullOrEmpty($existingNode)){
+
+              Write-Host "Creating new node......"
+              New-Node -Name "$nodeName" -FQDN $nodeFQDN -AddressType ipv4 -AutoPopulate disabled -Description $desc -ErrorAction Stop| Out-Null
+              Write-Host "Successfully created New Node $nodeName with FQDN $nodeFQDN"
+  
+            }
+
+            else {
+
+              $nodeName = $existingNode 
+              Write-Host "Using Existing Node $nodeName"
+
+
+            }
+
             
         }
 
