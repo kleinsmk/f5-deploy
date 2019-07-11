@@ -56,8 +56,7 @@ Function Get-ASMPolicies {
 
                         if ( $policy.totalitems -eq 0){
 
-                            ThrowError -ExceptionName "No ASM Policy Found" -ExceptionMessage "ASM Policy with name $name was not found."
-                            
+                            #return nothing                            
                         }
 
                         else {
