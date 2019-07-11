@@ -42,14 +42,31 @@ Function Get-ASMPolicies {
             try {
 
                     if ([string]::IsNullOrEmpty($name)) {
+
                         $response = Invoke-RestMethodOverride -Method GET -Uri $URI -WebSession $F5Session.WebSession
                         $response 
                     }
                     
                     else{
                     
-                        $response = Invoke-RestMethodOverride -Method GET -Uri $URI -WebSession $F5Session.WebSession
-                        $response | Select-Object -ExpandProperty items | where {$_.name -eq $name}
+                        #set search query uri using on board F5 commands to reduce the data load and speed up processing
+                        $uri = $F5Session.BaseURL.Replace('/ltm/',"/asm/policies?`$filter=fullPath+eq+%27%2FCommon%2F$name%27&`$select=id,name")
+
+                        $policy = Invoke-RestMethodOverride -Method Get -URI $uri -WebSession $F5Session.WebSession
+
+                        if ( $policy.totalitems -eq 0){
+
+                            ThrowError -ExceptionName "No ASM Policy Found" -ExceptionMessage "ASM Policy with name $name was not found."
+                            
+                        }
+
+                        else {
+
+                            $policy.items
+
+                        }
+         
+
                     
                     }               
 
@@ -58,8 +75,7 @@ Function Get-ASMPolicies {
 
             catch {
 
-                $message = $Error[0].ErrorDetails.Message | ConvertFrom-Json
-                Write-Host $message.message
+                $_.Exception
 
             }
         }
