@@ -7,7 +7,7 @@ Function New-AsmTaskJson {
     The HTTP method to call, must be GET, PUT, POST, PATCH
      
     .PARAMETER restEndpoint
-     The enpoint you wish your to execute your task at.  Must be in the format "/mgmt/tm/asm/"
+     The enpoint you wish your to execute your task at.  Must be in the format "mgmt/tm/asm/"
 
      .PARAMETER json
      The json body you would normally be sending in your HTTP request.  The F5 will queue this up as a task.
@@ -38,17 +38,19 @@ Function New-AsmTaskJson {
         process {
     
              
-@"
-            {
-      "commands": [
+$json = @"
+{
+  "commands": [
         {
-          "uri": "$restEndpoint",
-          "body": $json,
-          "method": "$method"
-        }
-      ]
+      "uri": "$restEndpoint",
+      "body": $json,
+      "method": "$method"
     }
+  ]
+}
 "@
+
+$json
                         
                 
         }
