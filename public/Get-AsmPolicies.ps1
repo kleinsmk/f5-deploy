@@ -50,7 +50,7 @@ Function Get-ASMPolicies {
                     else{
                     
                         #set search query uri using on board F5 commands to reduce the data load and speed up processing
-                        $uri = $F5Session.BaseURL.Replace('/ltm/',"/asm/policies?`$filter=fullPath+eq+%27%2FCommon%2F$name%27&`$select=id,name")
+                        $uri = $F5Session.BaseURL.Replace('/ltm/',"/asm/policies?`$filter=fullPath+eq+%27%2FCommon%2F$name%27&`$select=id,name,virtualServers")
 
                         $policy = Invoke-RestMethodOverride -Method Get -URI $uri -WebSession $F5Session.WebSession
 
