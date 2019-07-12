@@ -100,7 +100,7 @@
                     Write-Verbose "    [Status] $($response.status)"
                     if ( $response.status -eq "FAILURE" ){ Write-Warning $response.errors; break; }
                     if ( $response.status -eq "COMPLETED" ) { $taskStatus = $true }
-                    Sleep -Seconds 5
+                    Start-Sleep -Seconds 5
                 }
 
                 catch { 
