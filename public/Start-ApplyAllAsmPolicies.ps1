@@ -17,6 +17,8 @@ Function Start-ApplyAllAsmPolicies {
          
           $policy = Get-ASMPolicies
 
+          $array = @()
+
           foreach ($selflink in $policy.items.selflink){ 
 
           $array += @"
@@ -31,9 +33,9 @@ Function Start-ApplyAllAsmPolicies {
           } 
   
           $uri = $F5Session.BaseURL.Replace('/ltm/','/asm/tasks/apply-policy')
-
+$array
           foreach ($item in $array) {               
-
+                    
                   Invoke-RestMethodOverride -Method POST -URI $uri -Body $item -ContentType "application/json" -WebSession $F5Session.WebSession 
           }
      }

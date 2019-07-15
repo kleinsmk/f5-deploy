@@ -15,8 +15,8 @@ Function Get-AsmApplyPolicyStatus {
 
                $uri = $F5Session.BaseURL.Replace('/ltm/','/asm/tasks/apply-policy') 
                $response = Invoke-RestMethodOverride -Method Get -Uri $URI -ContentType 'application/json' -WebSession $F5Session.WebSession
-               $response.Status
-            }
-       }
+               $response.items
+        }
 }
+
    
