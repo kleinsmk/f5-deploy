@@ -12,14 +12,18 @@ Function Get-F5Transaction {
    #>
        [cmdletBinding()]
        param(
-   
+        [Parameter(Mandatory=$true)]
+        [string[]]$transId
        )
 
-       process {        
+       process {  
 
-            $uri = $F5Session.BaseURL.Replace('/ltm/','/transaction') 
-            $response = Invoke-RestMethodOverride -Method GET -Uri $URI -WebSession $F5Session.WebSession
-            $response
+            foreach ($trans in $transId) {
+                $uri = $F5Session.BaseURL.Replace('/ltm/',"/transaction/$transId") 
+                $response = Invoke-RestMethodOverride -Method GET -Uri $URI -WebSession $F5Session.WebSession
+                $response
+            }
+
        }
 }
    
