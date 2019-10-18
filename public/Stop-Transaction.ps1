@@ -19,7 +19,6 @@ Function Stop-F5Transaction {
 
             $F5Session.WebSession.Headers.Remove("X-F5-REST-Coordination-Id")
 
-            $true
        }
 }
    
