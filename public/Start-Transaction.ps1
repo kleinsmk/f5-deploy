@@ -23,7 +23,7 @@ Function Start-F5Transaction {
         
                #Add headers to existing F5 Session to caputre POSTS as transactions
                $F5Session.WebSession.Headers.Add("X-F5-REST-Coordination-Id",$($response.transId))
-               $true
+               $response
        }
 }
    

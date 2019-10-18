@@ -10,16 +10,33 @@ Function Invoke-F5Transaction {
       
        Requires F5-LTM modules from github
    #>
-       [cmdletBinding()]
-       param(
-   
-       )
+   [cmdletBinding()]
+   param(
+    [Parameter(Mandatory=$true)]
+    [string[]]$transId
+   )
 
-       process {        
+   process {  
 
-            $uri = $F5Session.BaseURL.Replace('/ltm/','/transaction') 
-            $response = Invoke-RestMethodOverride -Method Post -Uri $URI -Body "{ `"state`":`"VALIDATING`" }" -ContentType 'application/json' -WebSession $F5Session.WebSession
-            $response
-       }
+        foreach ($trans in $transId) {
+
+            try{
+                $uri = $F5Session.BaseURL.Replace('/ltm/',"/transaction/$trans") 
+                $response = Invoke-RestMethodOverride -Method PATCH -Uri $URI -Body "{ `"state`":`"VALIDATING`" }" -ContentType 'application/json' -WebSession $F5Session.WebSession
+                $response
+            }
+
+            catch {
+
+               Write-Output "An error occured commiting the transaction. No changes have been saved. Review the error below."
+               throw $_.ErrorDetails
+               Write-Output ""
+
+            }
+        }
+
+   }
+
 }
-   
+
+

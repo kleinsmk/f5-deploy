@@ -19,7 +19,7 @@ Function Get-F5Transaction {
        process {  
 
             foreach ($trans in $transId) {
-                $uri = $F5Session.BaseURL.Replace('/ltm/',"/transaction/$transId") 
+                $uri = $F5Session.BaseURL.Replace('/ltm/',"/transaction/$trans") 
                 $response = Invoke-RestMethodOverride -Method GET -Uri $URI -WebSession $F5Session.WebSession
                 $response
             }
