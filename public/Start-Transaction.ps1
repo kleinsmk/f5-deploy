@@ -1,4 +1,4 @@
-Function Start-Transaction {
+Function Start-F5Transaction {
    <#
    .SYNOPSIS
        Starts ASM Transaction logging on F5 Load Balancer
@@ -19,11 +19,11 @@ Function Start-Transaction {
        process {        
 
                $uri = $F5Session.BaseURL.Replace('/ltm/','/transaction') 
-               $response = Invoke-RestMethodOverride -Method Post -Uri $URI -Body $item -ContentType 'application/json' -WebSession $F5Session.WebSession
+               $response = Invoke-RestMethodOverride -Method Post -Uri $URI -Body "{}" -ContentType 'application/json' -WebSession $F5Session.WebSession
         
                #Add headers to existing F5 Session to caputre POSTS as transactions
                $F5Session.WebSession.Headers.Add("X-F5-REST-Coordination-Id",$($response.transId))
-            
+               $true
        }
 }
    
