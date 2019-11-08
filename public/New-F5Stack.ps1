@@ -134,7 +134,7 @@ Create new node 10.194.55.109:80, new virtual server named funtimes.boozallencsn
     #[Parameter(Mandatory = $true)]
     #[string]$wsa = ''
 
-    [ValidateSet('AWS','Azure')]
+    [ValidateSet('AWS','Azure', 'ASH')]
     [Parameter(Mandatory = $false)]
     [string]$environment = 'AWS'
 
@@ -156,6 +156,10 @@ Create new node 10.194.55.109:80, new virtual server named funtimes.boozallencsn
                 $wsa = 'AZURE_WSA_http_vs' 
             }
 
+            elseif ($environment -eq 'ASH') {
+                $wsa = 'ASH_WSA_redirect_vs'
+            }
+
             else { $wsa = 'AWS_WSA_redirect_vs' } 
                       
             $iruleDns = $dns
@@ -169,6 +173,10 @@ Create new node 10.194.55.109:80, new virtual server named funtimes.boozallencsn
 
             if( $environment -eq "Azure" ) { 
                 $wsa = 'AZURE_WSA_https_vs' 
+            }
+
+            elseif ($environment -eq 'ASH') {
+              $wsa = 'ASH_WSA_vs'
             }
 
             else { $wsa = 'AWS_WSA_vs' }
