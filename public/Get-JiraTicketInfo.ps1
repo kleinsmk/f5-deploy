@@ -51,28 +51,44 @@
                 
                 #grab the aws account
                 $awsGroup = $desc.CSN_AD_Group_Name
-                
-                #match for AWS account like AWS_293853093962 or Azure MAZ_8ccd4180-a8b6-413e-870f-b50af1e0647b
-                if($awsGroup -match '^AWS_[0-9]*$|^MAZ_[a-zA-Z0-9]*-[a-zA-Z0-9]*-[a-zA-Z0-9]*-[a-zA-Z0-9]*-[a-zA-Z0-9]*$'){
-                    #match for CIDR like 10.194.83.192/26           
-                    if( $subnet -match '^([0-9]{1,3}\.){3}[0-9]{1,3}(\/([0-9]|[1-2][0-9]|3[0-2]))?$' ){
-                    
-                        $envInfo =  [PSCustomObject]@{
-	                    'cr' = $crNumber
-	                    'aws_group' = $awsGroup
-	                    'subnet' = $subnet
+
+                #grab the account
+                $account = $desc.Account
+                          
+                #Check to allow On-Prem deploys and skip group name checking
+                if($account -eq "On-Prem"){
+
+                    $envInfo =  [PSCustomObject]@{
+                        'cr' = $crNumber
+                        'aws_group' = $awsGroup
+                        'subnet' = $subnet
                         }
-
-                        
-                    }
-                    else { Write-Error "Jira ticket has malforned User Private Subnet  info that cannot be scraped. Check for newline characters etc" -ErrorAction Stop }
-                 
                 }
-                    
 
-                else {
+                else{
+
+                    #match for AWS account like AWS_293853093962 or Azure MAZ_8ccd4180-a8b6-413e-870f-b50af1e0647b
+                    if($awsGroup -match '^AWS_[0-9]*$|^MAZ_[a-zA-Z0-9]*-[a-zA-Z0-9]*-[a-zA-Z0-9]*-[a-zA-Z0-9]*-[a-zA-Z0-9]*$'){
+                        #match for CIDR like 10.194.83.192/26           
+                        if( $subnet -match '^([0-9]{1,3}\.){3}[0-9]{1,3}(\/([0-9]|[1-2][0-9]|3[0-2]))?$' ){
                         
+                            $envInfo =  [PSCustomObject]@{
+                            'cr' = $crNumber
+                            'aws_group' = $awsGroup
+                            'subnet' = $subnet
+                            }
+
+                            
+                        }
+                        else { Write-Error "Jira ticket has malforned User Private Subnet  info that cannot be scraped. Check for newline characters etc" -ErrorAction Stop }
+                    
+                    }
+
+                    else {
+
                         Write-Error "Jira ticket has malforned AWS or Azure account info that cannot be scraped. Check for newline characters etc" -ErrorAction Stop
+
+                    }
                 }
 
                 $envInfo
