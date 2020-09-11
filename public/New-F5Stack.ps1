@@ -299,7 +299,7 @@ Create new node 10.194.55.109:80, new virtual server named funtimes.boozallencsn
             if([string]::IsNullOrEmpty($existingNode)){
 
               Write-Host "Creating new node......"
-              New-Node -Name "$nodeName" -FQDN $nodeFQDN -AddressType ipv4 -AutoPopulate disabled -Description $desc -ErrorAction Stop| Out-Null
+              New-Node -Name "$nodeName" -FQDN $nodeFQDN -AddressType ipv4 -AutoPopulate enabled -Description $desc -ErrorAction Stop| Out-Null
               Write-Host "Successfully created New Node $nodeName with FQDN $nodeFQDN"
   
             }
