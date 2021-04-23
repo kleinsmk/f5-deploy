@@ -1,4 +1,4 @@
-﻿Function Get-AccounInfoFromJira {
+﻿Function Get-AccountInfoFromJira {
 <#
 .SYNOPSIS
     . Converts jira ticket description from JSON and returns the environment name or account number
