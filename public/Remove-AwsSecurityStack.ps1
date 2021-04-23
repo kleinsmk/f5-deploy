@@ -94,7 +94,7 @@ Remove-AwsSecurityStack -crNumber "CR-4509" -f5creds $saved_credentials -jiracre
 
     }
 
-    $awsId = Get-AccounInfoFromJira -crNumber "$crnumber"
+    $awsId = Get-AccountInfoFromJira -crNumber "$crnumber"
 
     if ([string]::IsNullOrEmpty($awsID)) {
 
