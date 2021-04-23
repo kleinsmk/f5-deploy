@@ -12,7 +12,7 @@
 RootModule = 'f5-deploy.psm1'
 
 # Version number of this module.
-ModuleVersion = '1.0.56'
+ModuleVersion = '1.0.57'
 
 # Supported PSEditions
 # CompatiblePSEditions = @()
@@ -72,7 +72,7 @@ Description = 'Deploy Scripts for F5'
 FunctionsToExport = 'Add-ASMtoVirutal', 'Add-DataGroupIp', 'Add-LogIllegalRequests', 
                'Add-VirtualToPolicy', 'Add-VsProfile', 'Confirm-AsmTaskCompleted', 
                'Find-AllVCDProject', 'IS-InSubnet', 'Find-VCD', 'Generate-RemovalCmds', 
-               'Get-AccounInfoFromJira', 'Get-ASMPolicies', 'Get-AsmTaskStatus', 
+               'Get-AccountInfoFromJira', 'Get-ASMPolicies', 'Get-AsmTaskStatus', 
                'Get-AwsIdFromJira', 'Get-Csr', 'Get-DataGroup', 'Get-F5Transaction', 
                'Get-JiraTicketInfo', 'Get-NextFreeDestinationIP', 'Get-NodeByFQDN', 
                'Get-PortInfoFromJira', 'Get-SSLClient', 'Get-SSLServer', 
