@@ -97,7 +97,7 @@ New-AwsSecurityStack -crNumber "CR-4509" -f5creds $saved_credentials -jiracreds 
 
     }
 
-
+    #get ticket info from jira - returns custom object
     $newEnv = Get-JiraTicketInfo -crNumber "$crnumber"
 
     if ([string]::IsNullOrEmpty($newEnv)) {
@@ -130,8 +130,23 @@ New-AwsSecurityStack -crNumber "CR-4509" -f5creds $saved_credentials -jiracreds 
     try {
       Write-Output "Adding new ACL......"
       $aclOrder = (Get-NextAclOrder)
-      New-DefaultAcl -Name $newEnv.aws_group -subnet $newEnv.subnet -aclOrder $aclOrder -ErrorAction Stop | Write-Verbose
-      Write-Output "Added $($newEnv.aws_group) with subnet $($newEnv.subnet)"
+
+      #counter for single interations
+      $firstLoop = 0
+      foreach ($subnet in $newEnv.subnet ){
+
+        if( $firstLoop -eq 0 ){
+          New-DefaultAcl -Name $newEnv.aws_group -subnet $subnet -aclOrder $aclOrder -ErrorAction Stop | Write-Verbose
+          Write-Output "Added $($newEnv.aws_group) with subnet $subnet."
+          $firstLoop++
+        }
+        else {
+          Write-Output "Adding additional Subnet $subnet......"
+          Add-DefaultAclSubnet -name $newEnv.aws_group -action allow -dstSubnet $subnet -ErrorAction Stop | Write-Verbose
+          Write-Output "Added subnet $subnet to ACL $($newEnv.aws_group)." 
+        }
+
+      }
     }
     catch {
       Write-Warning "Adding ACL failed."
@@ -142,7 +157,7 @@ New-AwsSecurityStack -crNumber "CR-4509" -f5creds $saved_credentials -jiracreds 
     try {
       Write-Output "Mapping ACl to VPN access role......"
       Add-APMRole -Name $vpnrole -acl $newEnv.aws_group -group $newEnv.aws_group -ErrorAction stop | Write-Verbose
-      Write-Output "Mapped ACL $($newEnv.aws_group) to group  $($newEnv.subnet)."
+      Write-Output "Mapped ACL $($newEnv.aws_group) to group  $($newEnv.aws_group)."
     }
 
     catch {
@@ -196,9 +211,26 @@ New-AwsSecurityStack -crNumber "CR-4509" -f5creds $saved_credentials -jiracreds 
         }
 
   try {
-      Write-Output "Adding new ACL to AWS F5......"
-      New-DefaultAcl -Name $newEnv.aws_group -subnet $newEnv.subnet -aclOrder $aclOrder -ErrorAction Stop | Write-Verbose
-      Write-Output "Added $($newEnv.aws_group) with subnet $($newEnv.subnet)"
+    Write-Output "Adding new ACL......"
+    $aclOrder = (Get-NextAclOrder)
+
+    #counter for single interations
+    $firstLoop = 0
+    foreach ($subnet in $newEnv.subnet ){
+
+      if( $firstLoop -eq 0 ){
+        New-DefaultAcl -Name $newEnv.aws_group -subnet $subnet -aclOrder $aclOrder -ErrorAction Stop | Write-Verbose
+        Write-Output "Added $($newEnv.aws_group) with subnet $subnet."
+        $firstLoop++
+      }
+      else {
+        Write-Output "Adding additional Subnet $subnet......"
+        Add-DefaultAclSubnet -name $newEnv.aws_group -action allow -dstSubnet $subnet -ErrorAction Stop | Write-Verbose
+        Write-Output "Added subnet $subnet to ACL $($newEnv.aws_group)." 
+      }
+
+    }
+
     }
     catch {
       Write-Warning "Adding ACL failed."
@@ -209,7 +241,7 @@ New-AwsSecurityStack -crNumber "CR-4509" -f5creds $saved_credentials -jiracreds 
     try {
       Write-Output "Mapping ACl to VPN access role on AWS F5......"
       Add-APMRole -Name $vpnrole -acl $newEnv.aws_group -group $newEnv.aws_group -ErrorAction stop | Write-Verbose
-      Write-Output "Mapped ACL $($newEnv.aws_group) to group  $($newEnv.subnet)."
+      Write-Output "Mapped ACL $($newEnv.aws_group) to group  $($newEnv.aws_group)."
     }
 
     catch {

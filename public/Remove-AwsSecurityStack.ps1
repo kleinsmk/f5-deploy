@@ -94,7 +94,7 @@ Remove-AwsSecurityStack -crNumber "CR-4509" -f5creds $saved_credentials -jiracre
 
     }
 
-    $awsId = Get-AwsIdFromJira -crNumber "$crnumber"
+    $awsId = Get-AccounInfoFromJira -crNumber "$crnumber"
 
     if ([string]::IsNullOrEmpty($awsID)) {
 
@@ -205,7 +205,7 @@ Remove-AwsSecurityStack -crNumber "CR-4509" -f5creds $saved_credentials -jiracre
 
     catch {
       Write-Warning "Removing ACL failed."
-      throw $_.ErrorDetails
+      throw $_.Exception.ErrorDetails
       break
     }
 
