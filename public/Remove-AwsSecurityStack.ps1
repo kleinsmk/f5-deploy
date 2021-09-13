@@ -168,61 +168,7 @@ Remove-AwsSecurityStack -crNumber "CR-4509" -f5creds $saved_credentials -jiracre
       throw $_.Exception.Message
       break
     }
-  #============================================================================================================
-  #Add Same ACL build to AWS F5
-  
-   try {
-
-          Write-Output "Connecting to AWS F5 (ec2f5.boozallencsn.com)......"
-          $Global:F5Session = New-F5Session -LTMName $awsf5ip -LTMCredentials $f5creds -Default -PassThru -ErrorAction Stop
-          Write-Output "OK. Connected to AWS F5!"
-         }
-
-  catch {
-
-          Write-Warning "F5 was unable to connect please check your username, password, and network connection."
-          throw $_.Exception.Message
-          break
-
-        }
-
-    try {  
-      Write-Output "Removing existing Role mapping......"
-      Remove-APMRole -acl $awsId -group $awsID -name $vpnrole | Out-Null
-      Write-Output "Removed $awsId mapping from group $awsId"
-    }
-    catch {
-      Write-Warning "Removing APM Role mapping failed."
-      throw $_.ErrorDetails.Message
-      break
-    }
-
-    try {
-      Write-Output "Removing ACl......"
-      Remove-Acl -name $awsId | Out-Null
-      Write-Output "Removed ACL $awsID."
-    }
-
-    catch {
-      Write-Warning "Removing ACL failed."
-      throw $_.Exception.ErrorDetails
-      break
-    }
-
-   
-
-    try{
-      Write-Output "Update APM Policy......"
-      Update-APMPolicy -Name "CSN_VPN_Streamlined" -ErrorAction Stop | Write-Verbose
-      Write-Output "Policy Updated"
-    }
-
-    catch{
-      Write-Warning "Updating APM Policy failed."
-      throw $_.Exception.Message
-      break
-    }
-
+    
     try{
       
       #Close out Comments 
