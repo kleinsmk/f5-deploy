@@ -1,6 +1,3 @@
-$sut = (Split-Path -Leaf $MyInvocation.MyCommand.Path) -replace '\.Tests\.', '.'
-. "..\public\$sut"
-
 
 
 Describe "New-AwsSecurityStack AWS Deployment Integration Test" {
@@ -20,7 +17,7 @@ Describe "New-AwsSecurityStack AWS Deployment Integration Test" {
     Mock Get-JiraIssue {}
 
     BeforeAll {
-        $newEnv = @{"cr" = "CR-1000"; "aws_group" = "AWS_00000000000"; "subnet" = "1.2.3.4/32"}
+        $newEnv = @{"cr" = "CR-1000"; "aws_group" = "AWS_181346669898"; "subnet" = "1.2.3.4/32"}
     }
 
     New-AwsSecurityStack -crnumber $newEnv.cr -f5creds $f5 -jiracreds $jira
