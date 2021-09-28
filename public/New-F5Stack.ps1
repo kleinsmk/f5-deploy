@@ -136,7 +136,15 @@ Create new node 10.194.55.109:80, new virtual server named funtimes.boozallencsn
 
     [ValidateSet('AWS','Azure', 'ASH')]
     [Parameter(Mandatory = $false)]
-    [string]$environment = 'AWS'
+    [string]$environment = 'AWS',
+
+    [ValidateSet('irule','Datagroup')]
+    [Parameter(Mandatory = $true)]
+    [string]$routingType = 'irule',
+
+    [Parameter(Mandatory = $false)]
+    [string]$dataGroupName = ''
+
 
   )
 
@@ -433,38 +441,59 @@ Create new node 10.194.55.109:80, new virtual server named funtimes.boozallencsn
 
     }
     
-    #Add iRule
-    try
-    { 
-      $irule = "when HTTP_REQUEST {switch -glob [HTTP::host] {`"$dns`" { virtual $vsName }}}"
-      Set-iRule -Name "$vsName" -iRuleContent $irule -WarningAction Stop | Out-Null 
-      Write-Output "Successfully Created New iRule $dns" 
-    }
+    # check for routing type either irule or Datagroup
+    if( $routingType -eq "irule"){
 
-    #Add iRule
-    catch
-    {
+      #Add iRule
+      try
+      { 
+        $irule = "when HTTP_REQUEST {switch -glob [HTTP::host] {`"$dns`" { virtual $vsName }}}"
+        Set-iRule -Name "$vsName" -iRuleContent $irule -WarningAction Stop | Out-Null 
+        Write-Output "Successfully Created New iRule $dns" 
+      }
 
-      Write-Warning $_.Exception.Message
-      Write-Warning "Failed to create iRule."
-      Rollback-VCD -rollBack_Element @('virtual','pool','node','serverssl','clientssl')
-      break
+      #Add iRule
+      catch
+      {
 
-    }
+        Write-Warning $_.Exception.Message
+        Write-Warning "Failed to create iRule."
+        Rollback-VCD -rollBack_Element @('virtual','pool','node','serverssl','clientssl')
+        break
 
-    #Apply iRule
-    try  
-    {
-      Add-iRuleToVirtualServer -Name $wsa -iRuleName "$vsname" -WarningAction Stop | Out-Null; Write-Output "Successfully applied New iRule $dns to $wsa "
-    }
+      }
 
-    #Apply iRule
-    catch
-    {
-      
-      Write-Warning $_.Exception.Message
-      Rollback-VCD -rollBack_Element @('irule','virtual','pool','node','serverssl','clientssl')
-      break
+      #Apply iRule
+      try  
+      {
+        Add-iRuleToVirtualServer -Name $wsa -iRuleName "$vsname" -WarningAction Stop | Out-Null; Write-Output "Successfully applied New iRule $dns to $wsa "
+      }
+
+      #Apply iRule
+      catch
+      {
+        
+        Write-Warning $_.Exception.Message
+        Rollback-VCD -rollBack_Element @('irule','virtual','pool','node','serverssl','clientssl')
+        break
+      }
+    }#endif
+
+    # dataGroup Routing instead of irule
+    else{
+
+      try { 
+
+        Add-DataGroupIp -groupName SNI_HostNames -address $dns -value $vsName
+      }
+
+      catch {
+
+                Rollback-VCD -rollBack_Element @('virtual','pool','node','serverssl','clientssl')
+                break
+
+      }
+
     }
 
      #New ASM
