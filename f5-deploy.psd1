@@ -12,7 +12,7 @@
 RootModule = 'f5-deploy.psm1'
 
 # Version number of this module.
-ModuleVersion = '1.0.61'
+ModuleVersion = '1.0.62'
 
 # Supported PSEditions
 # CompatiblePSEditions = @()
@@ -71,19 +71,19 @@ Description = 'Deploy Scripts for F5'
 # Functions to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no functions to export.
 FunctionsToExport = 'Add-ASMtoVirutal', 'Add-DataGroupIp', 'Add-LogIllegalRequests', 
                'Add-VirtualToPolicy', 'Add-VsProfile', 'Confirm-AsmTaskCompleted', 
-               'Find-AllVCDProject', 'IS-InSubnet', 'Find-VCD', 'Generate-RemovalCmds', 
-               'Get-AccountInfoFromJira', 'Get-ASMPolicies', 'Get-AsmTaskStatus', 
-               'Get-AwsIdFromJira', 'Get-Csr', 'Get-DataGroup', 'Get-F5Transaction', 
-               'Get-JiraTicketInfo', 'Get-NextFreeDestinationIP', 'Get-NodeByFQDN', 
-               'Get-PortInfoFromJira', 'Get-SSLClient', 'Get-SSLServer', 
-               'Get-StoredCredntial', 'Invoke-AsmTask', 'Invoke-F5Transaction', 
-               'New-ASMPolicy', 'New-AsmTaskJson', 'New-AwsSecurityStack', 
-               'New-AwsSubnet', 'New-Csr', 'New-F5Stack', 'New-SSLClient', 
-               'New-SSLServer', 'New-VcdDeployment', 'Remove-AnySecurityStack', 
-               'Remove-Asm', 'Remove-AwsSecurityStack', 'Remove-DataGroupIp', 
-               'Remove-SSLClient', 'Remove-SSLServer', 'Remove-VsProfile', 
-               'Rollback-VCD', 'Start-F5Transaction', 'Stop-F5Transaction', 
-               'Upload-Cert'
+               'Convert-VirtualtoSplat', 'Find-AllVCDProject', 'IS-InSubnet', 
+               'Find-VCD', 'Generate-RemovalCmds', 'Get-AccountInfoFromJira', 
+               'Get-ASMPolicies', 'Get-AsmTaskStatus', 'Get-AwsIdFromJira', 'Get-Csr', 
+               'Get-DataGroup', 'Get-F5Transaction', 'Get-JiraTicketInfo', 
+               'Get-NextFreeDestinationIP', 'Get-NodeByFQDN', 'Get-PortInfoFromJira', 
+               'Get-SSLClient', 'Get-SSLServer', 'Get-StoredCredntial', 
+               'Invoke-AsmTask', 'Invoke-F5Transaction', 'New-ASMPolicy', 
+               'New-AsmTaskJson', 'New-AwsSecurityStack', 'New-AwsSubnet', 'New-Csr', 
+               'New-F5Stack', 'New-SSLClient', 'New-SSLServer', 'New-VcdDeployment', 
+               'Remove-AnySecurityStack', 'Remove-Asm', 'Remove-AwsSecurityStack', 
+               'Remove-DataGroupIp', 'Remove-SSLClient', 'Remove-SSLServer', 
+               'Remove-VsProfile', 'Rollback-VCD', 'Start-F5Transaction', 
+               'Stop-F5Transaction', 'Upload-Cert'
 
 # Cmdlets to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no cmdlets to export.
 CmdletsToExport = @()
