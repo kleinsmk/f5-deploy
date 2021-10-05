@@ -18,7 +18,8 @@ function Convert-VirtualtoSplat {
 
         foreach ( $item in $virtualName) {
 
-                $vs = Invoke-RestMethodOverride -Method GET -URI  "https://aws/mgmt/tm/ltm/virtual/~Common~${item}?expandSubcollections=true" -WebSession $F5Session.WebSession
+                $uri = $F5Session.BaseURL + "/virtual/~Common~${item}?expandSubcollections=true"
+                $vs = Invoke-RestMethodOverride -Method GET -URI $uri -WebSession $F5Session.WebSession
                 $asmPolicyName = $vs.profilesReference.items.name[0].Replace("ASM_","")
                 #$asmPolicyName = ($vs.policiesReference.items[0].name).replace("asm_auto_l7_policy__","")
                 $sslClientProfileName = ($vs.profilesReference.items | where {$_.nameReference.link -like "*client-ssl*"}).name
@@ -79,7 +80,7 @@ function Convert-VirtualtoSplat {
                 }
                 else {
                     @"
-                    `$build = @{
+                    @{
                         dns = ""
                         nodeIp = "$nodeIp"
                         nodeport = "$nodePort"
