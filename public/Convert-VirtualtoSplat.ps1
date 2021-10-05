@@ -18,7 +18,7 @@ function Convert-VirtualtoSplat {
 
         foreach ( $item in $virtualName) {
 
-                $uri = $F5Session.BaseURL + "/virtual/~Common~${item}?expandSubcollections=true"
+                $uri = $F5Session.BaseURL + "virtual/~Common~${item}?expandSubcollections=true"
                 $vs = Invoke-RestMethodOverride -Method GET -URI $uri -WebSession $F5Session.WebSession
                 $asmPolicyName = $vs.profilesReference.items.name[0].Replace("ASM_","")
                 #$asmPolicyName = ($vs.policiesReference.items[0].name).replace("asm_auto_l7_policy__","")
