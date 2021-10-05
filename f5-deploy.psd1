@@ -12,7 +12,7 @@
 RootModule = 'f5-deploy.psm1'
 
 # Version number of this module.
-ModuleVersion = '1.0.63'
+ModuleVersion = '1.0.64'
 
 # Supported PSEditions
 # CompatiblePSEditions = @()
