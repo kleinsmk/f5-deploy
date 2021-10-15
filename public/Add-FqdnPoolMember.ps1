@@ -79,7 +79,6 @@
 
 "@
 
-$JSONBody
             $uri = $F5Session.BaseURL.Replace('/ltm/', "/ltm/pool/~Common~$poolName/members")
             Invoke-RestMethodOverride -Method Post -URI $URI -Body $JSONBody -ContentType 'application/json' -WebSession $F5Session.WebSession
     
