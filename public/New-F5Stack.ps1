@@ -372,10 +372,25 @@ Create new node 10.194.55.109:80, new virtual server named funtimes.boozallencsn
     #Add Pool Member
     try 
     { 
-      Write-Output "Adding pool member $nodeName to pool $vsName....."
-      Add-PoolMember -PoolName "$vsName" -Name "$nodeName" -PortNumber "$nodePort" -Status Enabled -Description $desc -ErrorAction Stop | Out-Null
-      Write-Output "Successfully Added New Pool Member $nodeIP"
 
+      # if FQDN node was used build using custom FQDN node function
+      # that handles FQDN autopopulate nodes 
+      if( !([string]::IsNullOrEmpty($nodeFQDN)) ) {
+
+        Write-Output "Adding pool member $nodeName to pool $vsName....."
+        Add-FqdnPoolMember -poolName $vsName -nodeName $nodeName -nodePort $nodePort -nodeFqdn $nodeFQDN -ErrorAction Stop | Out-Null 
+        Write-Output "Successfully Added New Pool Member $nodeIP"
+
+      }
+      #build using POSH-F5-LTM add node for IP based Nodes
+      else {
+
+        Write-Output "Adding pool member $nodeName to pool $vsName....."
+        Add-PoolMember -PoolName "$vsName" -Name "$nodeName" -PortNumber "$nodePort" -Status Enabled -Description $desc -ErrorAction Stop | Out-Null
+        Write-Output "Successfully Added New Pool Member $nodeIP"
+
+      }
+  
     }
 
     #Add Pool Member
