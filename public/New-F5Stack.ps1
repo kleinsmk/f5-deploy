@@ -378,7 +378,7 @@ Create new node 10.194.55.109:80, new virtual server named funtimes.boozallencsn
       if( !([string]::IsNullOrEmpty($nodeFQDN)) ) {
 
         Write-Output "Adding pool member $nodeName to pool $vsName....."
-        Add-FqdnPoolMember -poolName $vsName -nodeName $nodeName -nodePort $nodePort -nodeFqdn $nodeFQDN   
+        Add-FqdnPoolMember -poolName $vsName -nodeName $nodeName -nodePort $nodePort -nodeFqdn $nodeFQDN -ErrorAction Stop | Out-Null 
         Write-Output "Successfully Added New Pool Member $nodeIP"
 
       }
