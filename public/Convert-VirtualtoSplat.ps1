@@ -76,7 +76,7 @@ function Convert-VirtualtoSplat {
                             asmPolicyName = "$asmPolicyName"
                             routingType = "Datagroup"
                             dataGroupName = "SNI_HostNames"
-                            irulesToApply = $irules
+                            irulesToApply = "$irules"
 
                         }
 "@
@@ -98,7 +98,7 @@ function Convert-VirtualtoSplat {
                         asmPolicyName = "$asmPolicyName"
                         routingType = "Datagroup"
                         dataGroupName = "SNI_HostNames"
-                        irulesToApply = $irules
+                        irulesToApply = "$irules"
                     }
 "@
                 }
