@@ -146,7 +146,7 @@ Create new node 10.194.55.109:80, new virtual server named funtimes.boozallencsn
     [string]$dataGroupName = '',
 
     [Parameter(Mandatory = $false)]
-    [string]$rulesToApply = ''
+    [string]$irulesToApply = ''
 
 
   )
