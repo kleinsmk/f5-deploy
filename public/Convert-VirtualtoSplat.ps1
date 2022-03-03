@@ -33,6 +33,8 @@ function Convert-VirtualtoSplat {
                 $poolUri = $poolUri.replace("ver=13.1.4.1", "expandSubcollections=true")
                 $pool = Invoke-RestMethodOverride -Method GET -URI $poolUri -WebSession $F5Session.WebSession
                 $nodePort = $pool.membersReference.items[0].name.split(":")[1]
+                #append as string since splat have to be flat
+                $irules = $vs.rules -join ","
                 
                 if ( $vsListeningPort -eq "443") {
 
@@ -74,6 +76,7 @@ function Convert-VirtualtoSplat {
                             asmPolicyName = "$asmPolicyName"
                             routingType = "Datagroup"
                             dataGroupName = "SNI_HostNames"
+                            irulesToApply = $irules
 
                         }
 "@
@@ -95,7 +98,7 @@ function Convert-VirtualtoSplat {
                         asmPolicyName = "$asmPolicyName"
                         routingType = "Datagroup"
                         dataGroupName = "SNI_HostNames"
-
+                        irulesToApply = $irules
                     }
 "@
                 }
