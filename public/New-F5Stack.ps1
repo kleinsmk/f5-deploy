@@ -143,7 +143,10 @@ Create new node 10.194.55.109:80, new virtual server named funtimes.boozallencsn
     [string]$routingType = 'irule',
 
     [Parameter(Mandatory = $false)]
-    [string]$dataGroupName = ''
+    [string]$dataGroupName = '',
+
+    [Parameter(Mandatory = $false)]
+    [string]$rulesToApply = ''
 
 
   )
@@ -524,6 +527,26 @@ Create new node 10.194.55.109:80, new virtual server named funtimes.boozallencsn
       }
 
     }
+
+    #apply irules to Virtual Server
+    try{
+
+      if( !([string]::IsNullOrEmpty($irulesToApply))) {
+          $ruleset = $irulesToApply.split(',')
+          foreach ($rule in $ruleset){
+            Add-iRuleToVirtualServer -Name $vsName -iRuleName $rule -WarningAction Stop | Out-Null
+            Write-Output "Successfully applied New iRule $rule to $vsName "
+          }
+      }
+    }
+   
+    catch {
+
+      Write-Warning $_.Exception.Message
+      Write-Warning "Failed to apply irule.  Please apply manually."
+
+    }
+
 
      #New ASM
     try
