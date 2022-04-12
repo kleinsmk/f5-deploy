@@ -231,9 +231,13 @@ Create new node 10.194.55.109:80, new virtual server named funtimes.boozallencsn
 
                 }
 
-                #check for default ssl profile
+                #check for default ssl profile or existing
                 if( $SSLServerProfile -eq "serverssl" ){
                     Write-Output "Using deafult serverssl profile."
+                    $serverProfileCreated = $true
+                }
+                elseif(Get-SSLServer -profileName $SSLServerProfile -ErrorAction Continue){
+                    Write-Output "Using existing Server profile $sslServerProfile...."
                     $serverProfileCreated = $true
                 }
                 Else{
@@ -269,6 +273,10 @@ Create new node 10.194.55.109:80, new virtual server named funtimes.boozallencsn
                 #check for default ssl option
                 if( $SSLServerProfile -eq "serverssl" ){
                     Write-Output "Using deafult serverssl profile."
+                    $serverProfileCreated = $true
+                }
+                elseif(Get-SSLServer -profileName $SSLServerProfile -ErrorAction Continue){
+                    Write-Output "Using existing Server profile $sslServerProfile...."
                     $serverProfileCreated = $true
                 }
                 Else{
