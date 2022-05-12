@@ -30,7 +30,7 @@ function Convert-VirtualtoSplat {
                 $accountNumber = $vs.description 
 
                 $poolUri = ($vs.poolReference.link).Replace("https://localhost/mgmt/tm/ltm/", $F5Session.BaseURL)
-                $poolUri = $poolUri.replace("ver=13.1.4.1", "expandSubcollections=true")
+                $poolUri = $poolUri + "&expandSubcollections=true" 
                 $pool = Invoke-RestMethodOverride -Method GET -URI $poolUri -WebSession $F5Session.WebSession
                 $nodePort = $pool.membersReference.items[0].name.split(":")[1]
                 #append as string since splat have to be flat
