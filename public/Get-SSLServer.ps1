@@ -37,16 +37,19 @@
 
     process {
 
+        try {
 
-        foreach ($profile in $profileName) {
+            foreach ($profile in $profileName) {
 
-            $uri = $F5Session.BaseURL.Replace('/ltm/',"/ltm/profile/server-ssl/~Common~${profilename}")
-            
-           
-            $response = Invoke-RestMethodOverride -Method GET -Uri $URI -WebSession $F5Session.WebSession
-            $response
-            
+                $uri = $F5Session.BaseURL.Replace('/ltm/',"/ltm/profile/server-ssl/~Common~${profilename}")
+                $response = Invoke-RestMethodOverride -Method GET -Uri $URI -WebSession $F5Session.WebSession
+                $response          
+            }
+        }
 
+        catch {
+            Write-Host "Unable to retrieve profile $profileName"
+            return $False
         }
         
 }
