@@ -46,7 +46,7 @@
         }
 
         catch {
-            Write-Verbose "Unable to Retrieve SSL Client Profile $profileName"
+            Write-Warning "Unable to Retrieve SSL Client Profile $profileName"
             return $False
         }
         
