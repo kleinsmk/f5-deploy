@@ -48,7 +48,7 @@
         }
 
         catch {
-            Write-Host "Unable to retrieve profile $profileName"
+            Write-Warning "Unable to Retrieve SSL Server Profile $profileName"
             return $False
         }
         

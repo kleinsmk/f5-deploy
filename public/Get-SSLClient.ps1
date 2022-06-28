@@ -46,7 +46,7 @@
         }
 
         catch {
-            Write-Host "Unable to retrieve profile $profileName"
+            Write-Verbose "Unable to Retrieve SSL Client Profile $profileName"
             return $False
         }
         
