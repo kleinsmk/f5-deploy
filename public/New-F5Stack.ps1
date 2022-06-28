@@ -215,21 +215,18 @@ Create new node 10.194.55.109:80, new virtual server named funtimes.boozallencsn
                 #Build both
                 #check for existing profile
                 #If an exception is thrown because profile isn't there
-                try {
+                
                   if(Get-SSLClient $sslClientProfile -ErrorAction Continue){
-                  Write-Output "Using existing Client profile $sslClientProfile....."
-                  $clientProfileCreated = $true
+
+                    Write-Output "Using existing Client profile $sslClientProfile....."
+                    $clientProfileCreated = $true
                   }
-                }
-
-                catch{               
-
-                Write-Output "Creating new Client profile....."
-                New-SSLClient -profileName $sslClientProfile -cert $certname -key $keyname | Out-Null
-                Write-Output "Client Profile created."
-                $clientProfileCreated = $true
-
-                }
+                  else{           
+                  Write-Output "Creating new Client profile....."
+                  New-SSLClient -profileName $sslClientProfile -cert $certname -key $keyname | Out-Null
+                  Write-Output "Client Profile created."
+                  $clientProfileCreated = $true
+                 }
 
                 #check for default ssl profile or existing
                 if( $SSLServerProfile -eq "serverssl" ){
@@ -251,21 +248,20 @@ Create new node 10.194.55.109:80, new virtual server named funtimes.boozallencsn
                 #Build only client
 
                 #check for existing profile
-                try {
                     if(Get-SSLClient $sslClientProfile -ErrorAction Continue){
+
                     Write-Output "Using existing Client profile $sslClientProfile....."
                     $clientProfileCreated = $true
                     }
-                }
+                    
+                    else{            
+                        
+                      Write-Output "Creating new Client profile....."
+                      New-SSLClient -profileName $sslClientProfile -cert $certname -key $keyname | Out-Null
+                      Write-Output "Client Profile created."
+                      $clientProfileCreated = $true
 
-                catch{               
-
-                Write-Output "Creating new Client profile....."
-                New-SSLClient -profileName $sslClientProfile -cert $certname -key $keyname | Out-Null
-                Write-Output "Client Profile created."
-                $clientProfileCreated = $true
-
-                }
+                    }
             
             }
             Elseif( !([string]::IsNullOrEmpty($SSLServerProfile)) ){
